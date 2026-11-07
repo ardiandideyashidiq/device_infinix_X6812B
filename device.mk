@@ -131,8 +131,6 @@ $(call inherit-product, hardware/lineage/compat/frameworks/compat.mk)
 $(call inherit-product, hardware/mediatek/frameworks/mediatek-frameworks.mk)
 
 # Kernel
-PRODUCT_SET_DEBUGFS_RESTRICTIONS := true
-PRODUCT_ENABLE_UFFD_GC := true
 PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
 
 # Keymaster
