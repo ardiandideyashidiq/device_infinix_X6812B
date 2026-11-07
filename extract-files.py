@@ -51,9 +51,7 @@ lib_fixups: lib_fixups_user_type = {
 }
 
 blob_fixups: blob_fixups_user_type = {
-    'system_ext/lib64/libsource.so': blob_fixup()
     .add_needed('libui_shim.so'),
-    'system_ext/lib64/libimsma.so': blob_fixup()
         .replace_needed('libsink.so', 'libsink-mtk.so'),
     'vendor/lib/hw/audio.primary.mt6768.so': blob_fixup()
         .add_needed('libshim_audio.so')
@@ -63,7 +61,7 @@ blob_fixups: blob_fixups_user_type = {
     'vendor/lib64/hw/android.hardware.camera.provider@2.6-impl-mediatek.so': blob_fixup()
         .add_needed('libcamera_metadata_shim.so'),
     (
-        'vendor/lib/lib3a.flash.so',
+
         'vendor/lib64/lib3a.flash.so',
     ): blob_fixup()
         .add_needed('liblog.so'),
@@ -97,7 +95,7 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/bin/mnld',
         'vendor/lib/libaalservice.so',
         'vendor/lib64/libaalservice.so',
-        'vendor/lib/libcam.utils.sensorprovider.so',
+
         'vendor/lib64/libcam.utils.sensorprovider.so',
     ): blob_fixup()
         .add_needed('android.hardware.sensors@1.0-convert-shared.so'),
@@ -112,8 +110,8 @@ blob_fixups: blob_fixups_user_type = {
     ): blob_fixup()
         .add_needed('libbase_shim.so'),
     (
-        'vendor/lib/libutils-v30.so',
-        'vendor/lib64/libutils-v30.so',
+
+
     ): blob_fixup()
         .add_needed('libprocessgroup_shim.so'),
     'vendor/bin/hw/mtkfusionrild': blob_fixup()
