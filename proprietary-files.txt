@@ -148,7 +148,6 @@ vendor/etc/audio_param/VoWHwVad_ParamUnitDesc.xml
 vendor/bin/autobt
 vendor/bin/hw/android.hardware.bluetooth@1.0-service-mediatek
 vendor/etc/init/android.hardware.bluetooth@1.0-service-mediatek.rc
-vendor/firmware/BT_FW.cfg
 vendor/lib/hw/android.hardware.bluetooth@1.0-impl-mediatek.so
 vendor/lib/libbluetooth_hw_test.so
 vendor/lib/libbluetooth_mtk.so
@@ -436,19 +435,10 @@ vendor/lib64/hw/fingerprint.silead.default.so
 vendor/lib64/libsl_fp_impl.so
 
 # Firmware
+vendor/firmware/BT_FW.cfg
 vendor/firmware/WIFI_RAM_CODE_soc1_0_1a_1.bin
 vendor/firmware/WMT_SOC.cfg
 vendor/firmware/fm_cust.cfg
-vendor/firmware/mt6631_fm_v1_coeff.bin
-vendor/firmware/mt6631_fm_v1_patch.bin
-vendor/firmware/soc1_0_patch_mcu_1a_1_hdr.bin
-vendor/firmware/soc1_0_ram_mcu_1a_1_hdr.bin
-vendor/firmware/soc1_0_ram_wifi_1a_1_hdr.bin
-
-# Firmware - from A055FXXS5CXG1
-vendor/firmware/soc1_0_ram_bt_1a_1_hdr.bin
-
-# Firmware (Touchscreen)
 vendor/firmware/gt1151_default_firmware2.img
 vendor/firmware/gt9886_cfg_6785v96.bin
 vendor/firmware/gt9886_cfg_6785v99.bin
@@ -470,6 +460,23 @@ vendor/firmware/gt9886_firmware_6885b0.bin
 vendor/firmware/gt9886_firmware_6885b1.bin
 vendor/firmware/gt9886_firmware_6885v01.bin
 vendor/firmware/gt9886_firmware_6893v01.bin
+vendor/firmware/mt6631_fm_v1_coeff.bin
+vendor/firmware/mt6631_fm_v1_patch.bin
+vendor/firmware/novatek_ts_fw.bin
+vendor/firmware/novatek_ts_fw_01.bin
+vendor/firmware/novatek_ts_mp.bin
+vendor/firmware/novatek_ts_mp_01.bin
+vendor/firmware/soc1_0_patch_mcu_1a_1_hdr.bin
+vendor/firmware/soc1_0_ram_bt_1a_1_hdr.bin
+vendor/firmware/soc1_0_ram_mcu_1a_1_hdr.bin
+vendor/firmware/soc1_0_ram_wifi_1a_1_hdr.bin
+vendor/firmware/soc3_0_ram_bt_1_1_hdr.bin
+vendor/firmware/soc3_0_ram_bt_1a_1_hdr.bin
+vendor/firmware/soc3_0_ram_mcu_1_1_hdr.bin
+vendor/firmware/soc3_0_ram_mcu_1a_1_hdr.bin
+vendor/firmware/soc3_0_ram_mcu_e1_hdr.bin
+vendor/firmware/st21nfc_fw7.bin
+vendor/firmware/wifi.cfg
 
 # Graphics (Hardware) - from realme/RMX3193/RMX3193:12/SP1A.210812.016/R.202202111917:user/release-keys
 vendor/bin/hw/android.hardware.graphics.allocator@4.0-service-mediatek
