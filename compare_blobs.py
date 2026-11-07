@@ -57,29 +57,39 @@ def parse_blob_target(raw_line: str) -> str:
     return line
 
 
-def blob_in_truth(path: str, exact_set: set, basename_map: dict) -> bool:
+def resolve_truth_path(path: str, exact_set: set, basename_map: dict) -> str | None:
+    """Find matching path in truth, auto-mapping partitions and paths."""
     if not path:
-        return True
+        return None
 
     if path in exact_set:
-        return True
+        return path
 
     norm = normalize_truth_entry(path)
     if norm in exact_set:
-        return True
+        return norm
 
-    # Partition redirects
+    # 1. Partition redirects: odm/... -> vendor/odm/... or vendor/...
     if path.startswith("odm/"):
         rel = path[len("odm/"):]
-        if f"vendor/odm/{rel}" in exact_set or f"vendor/{rel}" in exact_set:
-            return True
+        if f"vendor/odm/{rel}" in exact_set:
+            return f"vendor/odm/{rel}"
+        if f"vendor/{rel}" in exact_set:
+            return f"vendor/{rel}"
+        # odm/etc/audio/audio_param/... -> vendor/etc/audio_param/...
+        if rel.startswith("etc/audio/"):
+            alt = f"vendor/etc/{rel[len('etc/audio/'):]}"
+            if alt in exact_set:
+                return alt
 
     if path.startswith("system_ext/"):
         rel = path[len("system_ext/"):]
-        if f"system/system_ext/{rel}" in exact_set or f"system/{rel}" in exact_set:
-            return True
+        if f"system/system_ext/{rel}" in exact_set:
+            return f"system/system_ext/{rel}"
+        if f"system/{rel}" in exact_set:
+            return f"system/{rel}"
 
-    # Basename fallback matching same bitness (lib/lib64)
+    # 2. Basename fallback matching same bitness (lib/lib64)
     bname = os.path.basename(path)
     candidates = basename_map.get(bname, [])
     if candidates:
@@ -94,9 +104,14 @@ def blob_in_truth(path: str, exact_set: set, basename_map: dict) -> bool:
                 continue
             if is_lib32 and not cand_lib32:
                 continue
-            return True
+            return cand
 
-    return False
+    return None
+
+
+def replace_blob_target(raw_line: str, old_target: str, new_target: str) -> str:
+    """Replace target path in a proprietary-files line preserving flags/pins."""
+    return raw_line.replace(old_target, new_target, 1)
 
 
 def process_proprietary_files(prop_path: str, exact_set: set, basename_map: dict, remove: bool):
@@ -106,6 +121,8 @@ def process_proprietary_files(prop_path: str, exact_set: set, basename_map: dict
     out_lines = []
     commented_count = 0
     removed_count = 0
+    renamed_count = 0
+    seen_blobs = set()
 
     for line in lines:
         stripped = line.strip()
@@ -121,7 +138,18 @@ def process_proprietary_files(prop_path: str, exact_set: set, basename_map: dict
             continue
 
         target = parse_blob_target(stripped)
-        if not target or blob_in_truth(target, exact_set, basename_map):
+        resolved = resolve_truth_path(target, exact_set, basename_map)
+
+        if resolved:
+            if resolved != target:
+                renamed_count += 1
+                line = replace_blob_target(line, target, resolved)
+                target = resolved
+
+            # Deduplicate if renaming produced a duplicate already present
+            if target in seen_blobs:
+                continue
+            seen_blobs.add(target)
             out_lines.append(line)
         else:
             if remove:
@@ -133,7 +161,7 @@ def process_proprietary_files(prop_path: str, exact_set: set, basename_map: dict
     with open(prop_path, "w", encoding="utf-8") as f:
         f.writelines(out_lines)
 
-    print(f"proprietary-files.txt: {removed_count} removed, {commented_count} commented out.")
+    print(f"proprietary-files.txt: {renamed_count} renamed, {removed_count} removed, {commented_count} commented out.")
 
 
 def process_extract_files_py(py_path: str, exact_set: set, basename_map: dict, remove: bool):
@@ -144,6 +172,7 @@ def process_extract_files_py(py_path: str, exact_set: set, basename_map: dict, r
     out_lines = []
     commented_count = 0
     removed_count = 0
+    renamed_count = 0
 
     path_pattern = re.compile(r"""^(\s*)(['"])([^'"]+)\2(\s*:\s*blob_fixup\(\).*)""")
     tuple_item_pattern = re.compile(r"""^(\s*)(['"])([^'"]+)\2(\s*,?\s*)$""")
@@ -164,31 +193,45 @@ def process_extract_files_py(py_path: str, exact_set: set, basename_map: dict, r
             m_single = path_pattern.match(line)
             if m_single:
                 path = m_single.group(3)
-                if not blob_in_truth(path, exact_set, basename_map):
+                resolved = resolve_truth_path(path, exact_set, basename_map)
+                if resolved:
+                    if resolved != path:
+                        renamed_count += 1
+                        out_lines.append(f"{m_single.group(1)}{m_single.group(2)}{resolved}{m_single.group(2)}{m_single.group(4)}\n")
+                    else:
+                        out_lines.append(line)
+                else:
                     if remove:
                         removed_count += 1
                     else:
                         commented_count += 1
                         out_lines.append(f"{m_single.group(1)}{TAG} {m_single.group(2)}{path}{m_single.group(2)}{m_single.group(4)}\n")
-                    continue
+                continue
 
             m_tuple = tuple_item_pattern.match(line)
             if m_tuple and ("/" in m_tuple.group(3) or m_tuple.group(3).endswith(".so")):
                 path = m_tuple.group(3)
-                if not blob_in_truth(path, exact_set, basename_map):
+                resolved = resolve_truth_path(path, exact_set, basename_map)
+                if resolved:
+                    if resolved != path:
+                        renamed_count += 1
+                        out_lines.append(f"{m_tuple.group(1)}{m_tuple.group(2)}{resolved}{m_tuple.group(2)}{m_tuple.group(4)}\n")
+                    else:
+                        out_lines.append(line)
+                else:
                     if remove:
                         removed_count += 1
                     else:
                         commented_count += 1
                         out_lines.append(f"{m_tuple.group(1)}{TAG} {m_tuple.group(2)}{path}{m_tuple.group(2)}{m_tuple.group(4)}\n")
-                    continue
+                continue
 
         out_lines.append(line)
 
     with open(py_path, "w", encoding="utf-8") as f:
         f.writelines(out_lines)
 
-    print(f"extract-files.py: {removed_count} removed, {commented_count} commented out.")
+    print(f"extract-files.py: {renamed_count} renamed, {removed_count} removed, {commented_count} commented out.")
 
 
 def main():
