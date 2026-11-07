@@ -3,7 +3,7 @@
 # ADSP
 
 # AEE - from Redmi/ares/ares:12/SP1A.210812.016/21.11.8:user/release-keys
-vendor/lib64/libudf.so|f57a4f63592b62c2de72b377021327756fc5fac1
+vendor/lib64/libudf.so
 
 # Audio
 vendor/lib/hw/audio.primary.mt6768.so
@@ -463,8 +463,8 @@ vendor/bin/lib3a.ccu.pm
 # Camera (tuning)
 
 # DRM (Widevine) - from Redmi/selene/selene:12/SP1A.210812.016/V13.0.1.0.SKUMIXM:user/release-keys
-vendor/lib64/libwvhidl.so|1f58f2ddcea8274b901d957296560bde5eb0b8ad
-vendor/lib64/mediadrm/libwvdrmengine.so|3fd3de4406f52d8988d779b58e2510dd2ac1b281
+vendor/lib64/libwvhidl.so
+vendor/lib64/mediadrm/libwvdrmengine.so
 
 # Display (AAL)
 vendor/lib/libaal_cust.so
@@ -542,7 +542,7 @@ vendor/firmware/soc1_0_ram_mcu_1a_1_hdr.bin
 vendor/firmware/soc1_0_ram_wifi_1a_1_hdr.bin
 
 # Firmware - from A055FXXS5CXG1
-vendor/firmware/soc1_0_ram_bt_1a_1_hdr.bin|8c5d8e93ad8a03c6de5aaaad8ef58d53e75c8378
+vendor/firmware/soc1_0_ram_bt_1a_1_hdr.bin
 
 # Firmware (Touchscreen)
 vendor/firmware/gt1151_default_firmware2.img
@@ -568,11 +568,11 @@ vendor/firmware/gt9886_firmware_6885v01.bin
 vendor/firmware/gt9886_firmware_6893v01.bin
 
 # Graphics (Hardware) - from realme/RMX3193/RMX3193:12/SP1A.210812.016/R.202202111917:user/release-keys
-vendor/bin/hw/android.hardware.graphics.allocator@4.0-service-mediatek|b5ed2172cf761f04896a68c93b58ae87f407a3e9
-vendor/lib/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so|76ad23cf369d57c4e54b343a34db5857ea2af3ee
-vendor/lib/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so|f9a1c4433877187d2a221b5737080bda49663f21
-vendor/lib64/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so|fcd8bb4a81e0325976121558bd8fec691e68c54e
-vendor/lib64/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so|bef0c783e7a56a318d07f7a18c0a8b5d235be44c
+vendor/bin/hw/android.hardware.graphics.allocator@4.0-service-mediatek
+vendor/lib/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so
+vendor/lib/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so
+vendor/lib64/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so
+vendor/lib64/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so
 
 # Graphics
 vendor/bin/hw/vendor.mediatek.hardware.gpu@1.0-service
@@ -651,16 +651,16 @@ vendor/etc/init/fuelgauged_init.rc
 vendor/lib/libfgauge_gm30.so
 
 # IMS - from TECNO-U-64-ARMV82-230626V601DevT
--system_ext/bin/vtservice|59adc81ee1ad1f3fb4942cd6e8e7100325002eb2
-system_ext/etc/init/init.vtservice.rc|50a2249906edc06059b443513db47a2ddc0490dc
--system_ext/lib64/libmtk_vt_wrapper.so|af4d486c516c920ea99c362aebbf04180e96035c
--system_ext/lib64/libvcodec_cap.so|6973253cb2e4ddf365451ed2ac8db9d04085bc4a
--system_ext/lib64/libvcodec_capenc.so|5527525dfcd25169bc380ac53d8181ffa1429c6f
--system_ext/lib64/vendor.mediatek.hardware.videotelephony@1.0.so|aee568e770a3835af2df2262c9dc8bb2911da324
-vendor/bin/hw/vtservice_hidl|047b26f80b338b7d0869840d243eefebe82d56f5
-vendor/etc/init/init.vtservice_hidl.rc|f2e992214ed5bb99c2c2a135cf1f0996dba8a8a0
-vendor/lib64/hw/vendor.mediatek.hardware.videotelephony@1.0-impl.so|bb9ff554802e7bffb72cf24604109dafcf0019fc
-vendor/lib64/vendor.mediatek.hardware.videotelephony@1.0.so;MODULE_SUFFIX=_vendor|5e228669d2c575e38fc02a13404f31bc22494b87
+-system_ext/bin/vtservice
+system_ext/etc/init/init.vtservice.rc
+-system_ext/lib64/libmtk_vt_wrapper.so
+-system_ext/lib64/libvcodec_cap.so
+-system_ext/lib64/libvcodec_capenc.so
+-system_ext/lib64/vendor.mediatek.hardware.videotelephony@1.0.so
+vendor/bin/hw/vtservice_hidl
+vendor/etc/init/init.vtservice_hidl.rc
+vendor/lib64/hw/vendor.mediatek.hardware.videotelephony@1.0-impl.so
+vendor/lib64/vendor.mediatek.hardware.videotelephony@1.0.so;MODULE_SUFFIX=_vendor
 
 # IMS
 vendor/lib/libvt_custom.so
@@ -1022,7 +1022,7 @@ system/lib64/libutils.so:vendor/lib64/libutils-v30.so;FIX_SONAME
 vendor/etc/init/init_connectivity.rc
 
 # WiFi - from Redmi/merlin/merlin:11/RP1A.200720.011/V12.0.5.0.RJOCNXM:user/release-keys
-vendor/bin/stp_dump3|73ff60240688d76fc005a59716db1bdcdf63627f
-vendor/bin/wmt_launcher|d11c065c19a322f61821ad78ba7d27e8ded3dacb
-vendor/bin/wmt_loader|e095e09057aab66d5d59200189a01e7247c3fabe
-vendor/lib64/libwifitest.so|e3eebbde7e588375ea4f1eb03e0e60cc8a396142
+vendor/bin/stp_dump3
+vendor/bin/wmt_launcher
+vendor/bin/wmt_loader
+vendor/lib64/libwifitest.so
