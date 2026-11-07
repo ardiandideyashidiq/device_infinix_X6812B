@@ -1,0 +1,4 @@
+runtime_resource_overlay {
+    name: "ApertureOverlayX6812B",
+    product_specific: true,
+}

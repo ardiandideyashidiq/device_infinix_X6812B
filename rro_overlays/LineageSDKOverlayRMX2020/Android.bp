@@ -1,4 +1,0 @@
-runtime_resource_overlay {
-    name: "LineageSDKOverlayRMX2020",
-    vendor: true,
-}

@@ -1,5 +1,0 @@
-runtime_resource_overlay {
-    name: "WifiResOverlayRMX2020",
-    theme: "WifiResOverlay",
-    vendor: true,
-}

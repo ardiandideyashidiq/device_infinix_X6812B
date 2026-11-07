@@ -1,0 +1,4 @@
+runtime_resource_overlay {
+    name: "LineageSDKOverlayX6812B",
+    vendor: true,
+}

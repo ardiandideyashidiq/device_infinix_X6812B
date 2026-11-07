@@ -1,4 +1,0 @@
-runtime_resource_overlay {
-    name: "SystemUIOverlayRMX2020",
-    vendor: true,
-}

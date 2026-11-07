@@ -26,7 +26,7 @@ from extract_utils.utils import (
 )
 
 namespace_imports = [
-    'device/realme/RMX2020',
+    'device/infinix/X6812B',
     'hardware/mediatek',
     'hardware/mediatek/libmtkperf_client',
 ]
@@ -121,8 +121,8 @@ blob_fixups: blob_fixups_user_type = {
 }  # fmt: skip
 
 module = ExtractUtilsModule(
-    'RMX2020',
-    'realme',
+    'X6812B',
+    'infinix',
     blob_fixups=blob_fixups,
     lib_fixups=lib_fixups,
     namespace_imports=namespace_imports,

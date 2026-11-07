@@ -1,0 +1,5 @@
+runtime_resource_overlay {
+    name: "TetheringResOverlayX6812B",
+    theme: "TetheringResOverlay",
+    vendor: true,
+}

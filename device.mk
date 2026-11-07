@@ -4,16 +4,16 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-DEVICE_PATH := device/realme/RMX2020
+DEVICE_PATH := device/infinix/X6812B
 
 # Installs gsi keys into ramdisk, to boot a developer GSI with verified boot.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/developer_gsi_keys.mk)
 
 # Call proprietary blob setup
-$(call inherit-product, vendor/realme/RMX2020/RMX2020-vendor.mk)
+$(call inherit-product, vendor/infinix/X6812B/X6812B-vendor.mk)
 
 # IMS
-$(call inherit-product, vendor/realme/RMX2020-ims/RMX2020-ims.mk)
+$(call inherit-product, vendor/infinix/X6812B-ims/X6812B-ims.mk)
 
 PRODUCT_SHIPPING_API_LEVEL := 29
 
@@ -284,21 +284,20 @@ PRODUCT_PACKAGES += \
 
 # Runtime Resource Overlays 
 PRODUCT_PACKAGES += \
-    ApertureOverlayRMX2020 \
-    ApertureQRScannerOverlayRMX2020 \
-    CarrierConfigOverlayRMX2020 \
-    FingerprintResOverlayRMX2020 \
-    FrameworksResOverlayRMX2020 \
-    Launcher3OverlayRMX2020 \
-    LineageSDKOverlayRMX2020 \
-    LineageSettingsProviderOverlayRMX2020 \
-    SettingsOverlayRMX2020 \
-    SettingsProviderOverlayRMX2020 \
-    SettingsProviderOverlayRMX2027 \
-    SystemUIOverlayRMX2020 \
-    TelephonyOverlayRMX2020 \
-    TetheringResOverlayRMX2020 \
-    WifiResOverlayRMX2020
+    ApertureOverlayX6812B \
+    ApertureQRScannerOverlayX6812B \
+    CarrierConfigOverlayX6812B \
+    FingerprintResOverlayX6812B \
+    FrameworksResOverlayX6812B \
+    Launcher3OverlayX6812B \
+    LineageSDKOverlayX6812B \
+    LineageSettingsProviderOverlayX6812B \
+    SettingsOverlayX6812B \
+    SettingsProviderOverlayX6812B \
+    SystemUIOverlayX6812B \
+    TelephonyOverlayX6812B \
+    TetheringResOverlayX6812B \
+    WifiResOverlayX6812B
 
 # Seccomp
 PRODUCT_COPY_FILES += \

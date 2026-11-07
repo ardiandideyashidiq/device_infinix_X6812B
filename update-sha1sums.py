@@ -10,8 +10,8 @@ import os
 import sys
 from hashlib import sha1
 
-device='RMX2020'
-vendor='realme'
+device='X6812B'
+vendor='infinix'
 
 with open('proprietary-files.txt', 'r') as f:
     lines = f.read().splitlines()

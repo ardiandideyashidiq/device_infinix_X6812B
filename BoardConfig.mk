@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-DEVICE_PATH := device/realme/RMX2020
+DEVICE_PATH := device/infinix/X6812B
 
 # Architecture
 TARGET_ARCH := arm64
@@ -20,7 +20,7 @@ TARGET_2ND_CPU_ABI2 := armeabi
 TARGET_2ND_CPU_VARIANT := cortex-a55
 
 # Assert
-TARGET_OTA_ASSERT_DEVICE := RMX2020,RMX2027,rmx2020
+TARGET_OTA_ASSERT_DEVICE := X6812B,x6812b
 
 # AVB (Android Verified Boot)
 BOARD_AVB_ENABLE := true
@@ -73,8 +73,8 @@ BOARD_DTB_OFFSET := $(BOARD_KERNEL_TAGS_OFFSET)
 
 BOARD_BOOT_HEADER_VERSION := 2
 
-TARGET_KERNEL_SOURCE := kernel/realme/RMX2020
-TARGET_KERNEL_CONFIG := RMX2020_defconfig
+TARGET_KERNEL_SOURCE := kernel/infinix/X6812B
+TARGET_KERNEL_CONFIG := X6812B_defconfig
 TARGET_KERNEL_CLANG_COMPILE := true
 TARGET_KERNEL_CLANG_VERSION := clang-r547379
 TARGET_KERNEL_CLANG_PATH := $(shell pwd)/prebuilts/clang/host/linux-x86/clang-r547379
