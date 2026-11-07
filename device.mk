@@ -86,10 +86,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.memtrack-service.mediatek
 
-# Doze
-PRODUCT_PACKAGES += \
-    OplusDoze
-
 # DRM
 PRODUCT_PACKAGES += \
     android.hardware.drm-service.clearkey
@@ -98,14 +94,9 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     fastbootd
 
-
 # Fingerprint
 PRODUCT_PACKAGES += \
-    android.hardware.biometrics.fingerprint@2.1-service.RMX2020
-    
-# FM Radio
-PRODUCT_PACKAGES += \
-    FMRadio
+    android.hardware.biometrics.fingerprint@2.1-service
 
 # Gatekeeper
 PRODUCT_PACKAGES += \
@@ -139,9 +130,6 @@ PRODUCT_PACKAGES += \
 $(call inherit-product, hardware/lineage/compat/frameworks/compat.mk)
 $(call inherit-product, hardware/mediatek/frameworks/mediatek-frameworks.mk)
 
-# Init
-$(call soong_config_set,libinit,vendor_init_lib,//$(DEVICE_PATH):libinit_RMX2020)
-
 # Kernel
 PRODUCT_SET_DEBUGFS_RESTRICTIONS := true
 PRODUCT_ENABLE_UFFD_GC := true
@@ -157,9 +145,9 @@ PRODUCT_PACKAGES += \
     libpuresoftkeymasterdevice.vendor:64 \
     libnetutils.vendor
 
-# Lights
+# Light
 PRODUCT_PACKAGES += \
-    android.hardware.lights-service.RMX2020
+    android.hardware.light-service.lineage
 
 # Media
 PRODUCT_COPY_FILES += \
@@ -340,10 +328,6 @@ PRODUCT_SOONG_NAMESPACES += \
 # Text classifier
 PRODUCT_PACKAGES += \
     libtextclassifier_hash.vendor
-
-# Touch
-PRODUCT_PACKAGES += \
-    vendor.lineage.touch-service.RMX2020
 
 # Thermal
 PRODUCT_PACKAGES += \
