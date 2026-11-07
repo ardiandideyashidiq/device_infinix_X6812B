@@ -577,6 +577,23 @@ vendor/etc/ipsec/ipsec.d/cacerts/thawte.der
 vendor/etc/ipsec/ssl/openssl.cnf
 vendor/etc/ipsec/strongswan.conf
 
+# Kernel modules
+vendor/lib/modules/bt_drv.ko
+vendor/lib/modules/fmradio_drv.ko
+vendor/lib/modules/fpsgo.ko
+vendor/lib/modules/gps_drv.ko
+vendor/lib/modules/kheaders.ko
+vendor/lib/modules/met.ko
+vendor/lib/modules/modules.alias
+vendor/lib/modules/modules.dep
+vendor/lib/modules/modules.load
+vendor/lib/modules/modules.softdep
+vendor/lib/modules/tran_fre.ko
+vendor/lib/modules/udc_lib.ko
+vendor/lib/modules/wlan_drv_gen4m.ko
+vendor/lib/modules/wmt_chrdev_wifi.ko
+vendor/lib/modules/wmt_drv.ko
+
 # Keymaster
 vendor/bin/hw/android.hardware.keymaster@4.0-service.trustonic
 vendor/etc/init/android.hardware.keymaster@4.0-service.trustonic.rc
