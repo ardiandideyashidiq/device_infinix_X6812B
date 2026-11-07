@@ -1,1 +1,1 @@
-allow priv_app sw_sync_device:chr_file rw_file_perms;
+allow priv_app metadata_file:dir { read open getattr };

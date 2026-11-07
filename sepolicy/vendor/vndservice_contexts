@@ -1,0 +1,5 @@
+# Fingerprint
+FocalFingerprintService                                     u:object_r:fingerprint_vndservice:s0
+
+FSFPFingerprintService u:object_r:fs_service:s0
+SunwaveFingerprintService  u:object_r:sw_service:s0

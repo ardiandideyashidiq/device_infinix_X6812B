@@ -1,3 +1,1 @@
-# Set and get wlan_fw_prop (vendor.wlan.)
-get_prop(hal_wifi_default, vendor_mtk_wifi_hal_prop)
-set_prop(hal_wifi_default, vendor_mtk_wifi_hal_prop)
+get_prop(hal_wifi_default, persist_vendor_debug_wifi_prop)

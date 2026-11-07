@@ -1,13 +1,15 @@
-# CommonDcs
-vendor.oplus.hardware.commondcs::ICommonDcsHalService                        u:object_r:hal_commondcs_hwservice:s0
+# Camera
+vendor.transsion.hardware.trancam.trancamserver::ITrancamserver                     u:object_r:hal_trancamserver_hwservice:s0
 
 # Fingerprint
-vendor.oplus.hardware.biometrics.fingerprint::IBiometricsFingerprint         u:object_r:hal_fingerprint_hwservice:s0
-vendor.oplus.hardware.biometrics.fingerprintservice::IFingerprintHalService  u:object_r:hal_fingerprint_hwservice:s0
+vendor.fptool.fingerprint::IFptoolFingerprint                                   u:object_r:hal_fingerprint_hwservice:s0
+vendor.goodix.hardware.biometrics.fingerprint::IGoodixFingerprintDaemon          u:object_r:goodix_fingerprint_service:s0
+vendor.goodix.hardware.biometrics.fingerprint::IGoodixFingerprintDaemonExt       u:object_r:goodix_fingerprint_service:s0
+vendor.goodix.hardware.biometrics.fingerprint::IGoodixFingerprintDaemonHbd          u:object_r:goodix_fingerprint_service:s0
+vendor.goodix.hardware.biometrics.fingerprint::IGoodixFingerprintDaemonFido       u:object_r:goodix_fingerprint_service:s0
+vendor.focaltech.hardware.biometrics.fingerprint::IFocalFingerprint    u:object_r:ff_hwservice:s0
+vendor.mediatek.hardware.biometrics.fingerprint::ITranBiometricsFingerprint   u:object_r:hal_fingerprint_hwservice:s0
+vendor.fpsensor.hardware.fpsensorhidlsvc::IFpsensorHidlSvc                   u:object_r:fp_ext_svc2_service:s0
 
-# ORMS
-vendor.oplus.hardware.orms::IOrmsHalProxy                                    u:object_r:hal_orms_hwservice:s0
-
-# Radio
-vendor.oplus.hardware.radio::IOplusRadio                                     u:object_r:hal_telephony_hwservice:s0
-vendor.oplus.hardware.appradio::IOplusAppRadio                               u:object_r:hal_telephony_hwservice:s0
+# Wi-Fi
+vendor.transsion.hardware.wifi.hostapd::IHostapd                                    u:object_r:hal_wifi_hostapd_hwservice:s0

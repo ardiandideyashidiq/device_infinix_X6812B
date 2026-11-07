@@ -1,15 +1,8 @@
-# Audio
-system_public_prop(system_audio_tuning_prop)
-system_public_prop(system_oplus_audio_prop)
-
 # Camera
-system_public_prop(system_oplus_camera_prop)
+vendor_public_prop(vendor_camera_prop)
 
 # Fingerprint
-system_public_prop(system_oplus_fingerprint_prop)
+vendor_public_prop(vendor_fingerprint_prop)
 
-# OPLUS
-system_public_prop(system_oplus_prop)
-
-# Sensors
-system_public_prop(system_oplus_sensor_prop)
+# Goodix fingerprint debug (non-vendor-prefixed, system-owned)
+system_public_prop(vendor_gf_debug_prop)

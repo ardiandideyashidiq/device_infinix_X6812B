@@ -1,15 +1,8 @@
-allow init hwservicemanager:binder call;
-allow init self:netlink_kobject_uevent_socket read;
-allow init sysfs_wake_lock:file r_file_perms;
-allow init vendor_data_file:file w_file_perms;
-allow init sysfs_mmc_host:file rw_file_perms;
-allow init proc_vm:file rw_file_perms;
-allow init sysfs_otg_switch:file rw_file_perms;
-allow init sysfs_mtusb_saving:file rw_file_perms;
-allow init sysfs_sensor:file rw_file_perms;
-allow init sysfs_sensor:file setattr;
-allow init sysfs_virtual_sensor:file rw_file_perms;
-allow init sysfs_virtual_sensor:file setattr;
-allow init proc_oplus_ver:file r_file_perms;
-get_prop(init, vendor_oplus_fingerprint_prop)
-set_prop(init, vendor_oplus_fingerprint_prop)
+allow init sysfs_devices_block:file rw_file_perms;
+allow init tranfs_block_device:blk_file { read relabelto };
+allow init tranfs_block_device:lnk_file { getattr read relabelto };
+allow init trustonic_kmsetkey_ca_exec:file execute;
+allow init socket_device:sock_file { create write };
+
+get_prop(init, vendor_mtk_service_nvram_restore_prop)
+get_prop(init, vts_status_prop)

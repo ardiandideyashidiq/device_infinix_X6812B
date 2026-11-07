@@ -1,0 +1,4 @@
+# TODO: Identify the exact camera properties/files being read as default_prop
+# and label them properly. Remove this dontaudit once properties are correctly labeled.
+# See: sepolicy/vendor/property_contexts for camera property entries.
+dontaudit hal_camera_default default_prop:file r_file_perms;
