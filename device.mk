@@ -266,7 +266,9 @@ PRODUCT_PACKAGES += \
     init.sensor_1_0.rc \
     fstab.mt6768 \
     fstab.mt6768.ramdisk \
-    ueventd.mtk.rc
+    ueventd.mtk.rc \
+    init.insmod.sh \
+    init.insmod.cfg
 
 # Renderscript
 PRODUCT_PACKAGES += \

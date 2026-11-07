@@ -58,3 +58,15 @@ prebuilt_etc {
     relative_install_path: "init",
     recovery: true,
 }
+
+prebuilt_etc {
+    name: "init.insmod.cfg",
+    src: "init.insmod.cfg",
+    vendor: true,
+}
+
+sh_binary {
+    name: "init.insmod.sh",
+    src: "bin/init.insmod.sh",
+    vendor: true,
+}
