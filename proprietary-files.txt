@@ -956,15 +956,16 @@ vendor/lib/libthermalalgo.so
 vendor/lib64/libmtcloader.so
 
 # Trusted Execution Environment (TEE)
-odm/vendor/app/mcRegistry/030b0000000000000000000000000000.drbin
-odm/vendor/app/mcRegistry/030b0000000000000000000000000000.tlbin
-odm/vendor/app/mcRegistry/511ead0a000000000000000000000000.tabin
 vendor/app/mcRegistry/020b0000000000000000000000000000.drbin
 vendor/app/mcRegistry/020b0000000000000000000000000000.tlbin
 vendor/app/mcRegistry/020f0000000000000000000000000000.drbin
 vendor/app/mcRegistry/020f0000000000000000000000000000.tlbin
+vendor/app/mcRegistry/030b0000000000000000000000000000.drbin
+vendor/app/mcRegistry/030b0000000000000000000000000000.tlbin
 vendor/app/mcRegistry/05120000000000000000000000000000.drbin
 vendor/app/mcRegistry/05120000000000000000000000000000.tlbin
+vendor/app/mcRegistry/05120000000000000000000000000001.drbin
+vendor/app/mcRegistry/05120000000000000000000000000001.tlbin
 vendor/app/mcRegistry/06090000000000000000000000000000.drbin
 vendor/app/mcRegistry/06090000000000000000000000000000.tlbin
 vendor/app/mcRegistry/0706000000000000000000000000004d.tlbin
@@ -979,9 +980,12 @@ vendor/app/mcRegistry/08050000000000000000000000003419.drbin
 vendor/app/mcRegistry/08050000000000000000000000003419.tlbin
 vendor/app/mcRegistry/08110000000000000000000000000000.tabin
 vendor/app/mcRegistry/09010000000000000000000000000000.tabin
+vendor/app/mcRegistry/09190000000000000000000000000000.tabin
+vendor/app/mcRegistry/511ead0a000000000000000000000000.tabin
 vendor/app/mcRegistry/9073f03a9618383bb1856eb3f990babd.drbin
 vendor/app/mcRegistry/9073f03a9618383bb1856eb3f990babd.tlbin
 vendor/app/mcRegistry/98fb95bcb4bf42d26473eae48690d7ea.tabin
+vendor/app/mcRegistry/df1edda8627911e980ae507b9d9a7e7d.tabin
 vendor/bin/hw/vendor.trustonic.tee@1.1-service
 vendor/bin/mcDriverDaemon
 vendor/etc/init/tee.rc
