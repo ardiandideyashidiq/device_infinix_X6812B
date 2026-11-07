@@ -46,7 +46,9 @@
 /dev/fw_log_wifi          0660   wifi     wifi
 
 # FMRadio
-/dev/fm                   0660   system     system
+#TCD:add XLJLHLJYR-21 for dev/fm by shouhui.li 20200810 start
+/dev/fm                   0666   media     media
+#TCD:add XLJLHLJYR-21 for dev/fm by shouhui.li 20200810 end
 
 # NFC
 /dev/st21nfc              0660   nfc        radio
