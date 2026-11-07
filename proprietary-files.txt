@@ -935,6 +935,10 @@ vendor/lib64/vendor.trustonic.tee@1.1.so
 system/lib/libutils.so:vendor/lib/libutils-v30.so;FIX_SONAME
 system/lib64/libutils.so:vendor/lib64/libutils-v30.so;FIX_SONAME
 
+# USB
+vendor/bin/hw/android.hardware.usb@1.1-service-mediatek
+vendor/etc/init/android.hardware.usb@1.1-service-mediatek.rc
+
 # WiFi
 vendor/etc/init/init_connectivity.rc
 
