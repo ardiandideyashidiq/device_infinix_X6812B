@@ -126,10 +126,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     vndservicemanager
 
-# IMS
-$(call inherit-product, hardware/lineage/compat/frameworks/compat.mk)
-$(call inherit-product, hardware/mediatek/frameworks/mediatek-frameworks.mk)
-
 # Kernel
 PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
 
