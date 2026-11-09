@@ -665,6 +665,12 @@ vendor/etc/ipsec/ssl/openssl.cnf
 vendor/etc/ipsec/strongswan.conf
 
 # Kernel modules
+vendor/etc/init/init.bt_drv.rc
+vendor/etc/init/init.fmradio_drv.rc
+vendor/etc/init/init.gps_drv.rc
+vendor/etc/init/init.pnpmgr.fre.rc
+vendor/etc/init/init.wlan_drv.rc
+vendor/etc/init/init.wmt_drv.rc
 vendor/lib/modules/bt_drv.ko
 vendor/lib/modules/fmradio_drv.ko
 vendor/lib/modules/fpsgo.ko

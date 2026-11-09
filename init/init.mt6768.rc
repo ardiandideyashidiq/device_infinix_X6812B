@@ -47,10 +47,6 @@ on property:ro.boot.product.hardware.sku=nfc
     start secure_element_hal_service
     start vendor.nfc_hal_service
 
-on init && property:persist.vendor.fingerprint.available=false
-    mount none /vendor/lost+found /vendor/etc/vintf/manifest/android.hardware.biometrics.fingerprint@2.1-service.RMX2020.xml bind
-    mount none /vendor/lost+found /vendor/etc/permissions/android.hardware.fingerprint.xml bind
-
 on late-init
     # enable rcu_expedited
     write /sys/kernel/rcu_expedited 1
@@ -59,8 +55,6 @@ on charger
     write /proc/perfmgr/boost_ctrl/cpu_ctrl/boot_freq "-1 -1 -1 -1"
     write /sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp -1
 
-    exec /system/bin/e2fsck -f -p /dev/block/platform/bootdevice/by-name/cache
-    mount ext4 /dev/block/platform/bootdevice/by-name/cache /cache rw wait
     chmod 0660 /dev/spm
     chown system system /dev/spm
     chmod 0666 /dev/kmsg
@@ -609,6 +603,9 @@ on post-fs-data
 
 on boot
     stop console
+
+    # FPSGO FBT game
+    insmod /vendor/lib/modules/fpsgo.ko
 
     # Disable edge limit control interface
     write /proc/touchpanel/oplus_tp_limit_enable 0
