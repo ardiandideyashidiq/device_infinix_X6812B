@@ -301,6 +301,7 @@ PRODUCT_COPY_FILES += \
 # Ramdisk
 PRODUCT_PACKAGES += \
     init.recovery.mt6768.rc \
+    init.recovery.mt6768.root.rc \
     init.stnfc.rc \
     init.connectivity.rc \
     init.modem.rc \
@@ -308,6 +309,7 @@ PRODUCT_PACKAGES += \
     init.mt6768.usb.rc \
     init.sensor_1_0.rc \
     fstab.mt6768 \
+    fstab.mt6768.ramdisk \
     ueventd.mtk.rc \
     init.insmod.sh \
     init.insmod.cfg

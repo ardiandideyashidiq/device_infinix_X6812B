@@ -1,79 +1,80 @@
 //
-// Copyright (C) 2022 ArrowOS
+// Copyright (C) 2025 LineageOS
+//
 // SPDX-License-Identifier: Apache-2.0
 //
 
 prebuilt_etc {
-    name: "init.connectivity.rc",
-    src: "init.connectivity.rc",
-    relative_install_path: "init/hw",
-    vendor: true,
-}
-
-prebuilt_etc {
-    name: "init.modem.rc",
-    src: "init.modem.rc",
-    relative_install_path: "init/hw",
-    vendor: true,
-}
-
-prebuilt_etc {
-    name: "init.mt6768.rc",
-    src: "init.mt6768.rc",
-    relative_install_path: "init/hw",
-    vendor: true,
-}
-
-prebuilt_etc {
-    name: "init.mt6768.usb.rc",
-    src: "init.mt6768.usb.rc",
-    relative_install_path: "init/hw",
-    vendor: true,
-}
-
-prebuilt_etc {
-    name: "init.sensor_1_0.rc",
-    src: "init.sensor_1_0.rc",
-    relative_install_path: "init/hw",
-    vendor: true,
+    name: "init.recovery.mt6768.rc",
+    src: "etc/init.recovery.mt6768.rc",
+    recovery: true,
+    sub_dir: "init"
 }
 
 prebuilt_etc {
     name: "fstab.mt6768",
-    src: "fstab.mt6768",
+    src: "etc/fstab.mt6768",
     vendor: true,
-    ramdisk_available: true,
+    ramdisk_available: true
 }
 
 prebuilt_etc {
     name: "ueventd.mtk.rc",
     filename: "ueventd.rc",
-    src: "ueventd.mtk.rc",
-    vendor: true,
+    src: "etc/ueventd.mtk.rc",
+    vendor: true
 }
 
 prebuilt_etc {
-    name: "init.recovery.mt6768.rc",
-    src: "init.recovery.mt6768.rc",
-    relative_install_path: "init",
-    recovery: true,
+    name: "init.connectivity.rc",
+    src: "etc/init/hw/init.connectivity.rc",
+    sub_dir: "init/hw",
+    vendor: true
+}
+
+prebuilt_etc {
+    name: "init.modem.rc",
+    src: "etc/init/hw/init.modem.rc",
+    sub_dir: "init/hw",
+    vendor: true
+}
+
+prebuilt_etc {
+    name: "init.mt6768.rc",
+    src: "etc/init/hw/init.mt6768.rc",
+    sub_dir: "init/hw",
+    vendor: true
+}
+
+prebuilt_etc {
+    name: "init.mt6768.usb.rc",
+    src: "etc/init/hw/init.mt6768.usb.rc",
+    sub_dir: "init/hw",
+    vendor: true
+}
+
+prebuilt_etc {
+    name: "init.sensor_1_0.rc",
+    src: "etc/init/hw/init.sensor_1_0.rc",
+    sub_dir: "init/hw",
+    vendor: true
+}
+
+prebuilt_etc {
+    name: "init.stnfc.rc",
+    src: "etc/init/hw/init.stnfc.rc",
+    sub_dir: "init/hw",
+    vendor: true
 }
 
 prebuilt_etc {
     name: "init.insmod.cfg",
     src: "init.insmod.cfg",
-    vendor: true,
-}
-
-prebuilt_etc {
-    name: "init.stnfc.rc",
-    src: "init.stnfc.rc",
-    relative_install_path: "init/hw",
-    vendor: true,
+    vendor: true
 }
 
 sh_binary {
     name: "init.insmod.sh",
     src: "bin/init.insmod.sh",
-    vendor: true,
+    vendor: true
 }
