@@ -101,6 +101,15 @@ blob_fixups: blob_fixups_user_type = {
         .add_needed('libbase_shim.so'),
     'vendor/bin/hw/mtkfusionrild': blob_fixup()
         .add_needed('libutils-v32.so'),
+    'vendor/lib64/hw/hwcomposer.mt6768.so': blob_fixup()
+        .add_needed('libprocessgroup_shim.so'),
+    'vendor/lib64/libtranssion_bodybeauty.so': blob_fixup()
+        .patchelf_version('0_17_2')
+        .clear_symbol_version('AHardwareBuffer_allocate')
+        .clear_symbol_version('AHardwareBuffer_describe')
+        .clear_symbol_version('AHardwareBuffer_lockPlanes')
+        .clear_symbol_version('AHardwareBuffer_release')
+        .clear_symbol_version('AHardwareBuffer_unlock'),
 }  # fmt: skip
 
 module = ExtractUtilsModule(
