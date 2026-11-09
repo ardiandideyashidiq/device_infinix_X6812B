@@ -39,14 +39,6 @@ sys.ipo.pwrdncap=2
 # Kernel
 ro.kernel.zio=38,108,105,16
 
-# OPLUS
-ro.build.display.wtid.ato=SW_S98670AA1_V010_USRD_TEST
-ro.build.display.wtid.monet.ato=SW_S98670AA1_V017_M10_R_USRD_ATO
-ro.build.display.wtid.monet.mp=SW_S98670AA1_V006_M10_R_USRD_MP
-ro.build.display.wtid.monetx.ato=SW_S98675AA1_V015_M10_R_USRD_ATO
-ro.build.display.wtid.monetx.mp=SW_S98675AA1_V010_M10_R_USRD_MP
-ro.build.display.wtid.mp=SW_S98670AA1_V010_USRD_TEST
-
 # LMKD
 ro.config.low_ram=false
 ro.lmk.log_stats=true
@@ -56,7 +48,7 @@ ro.product.property_source_order=odm,vendor,product,system
 
 # Product
 ro.board.platform=mt6768
-ro.product.board=oppo6769
+ro.product.board=Infinix-X6812B
 
 # System
 persist.sys.binary_xml=false

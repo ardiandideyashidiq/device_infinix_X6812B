@@ -1,4 +1,4 @@
-# Device proprietary files - From RMX2020-user 11 RP1A.200720.011 RMX2020_11_C.12 release-keys, unless pinned
+# Device proprietary files - From Infinix X6812B 11/RP1A.200720.011 stock firmware, unless pinned
 
 # ADSP
 
@@ -847,8 +847,6 @@ vendor/lib64/vendor.mediatek.hardware.power@1.1.so
 vendor/lib64/vendor.mediatek.hardware.power@2.0.so
 
 # PPL (Mediatek Privacy Protection Lock)
-
-# Radio (Oplus)
 
 # Radio 
 vendor/bin/bip
