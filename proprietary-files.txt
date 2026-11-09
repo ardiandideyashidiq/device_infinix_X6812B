@@ -800,8 +800,11 @@ vendor/lib/libcapctrl.so
 vendor/lib/libcares_naptr.so
 vendor/lib/libcarrierconfig.so
 vendor/lib/libccci_util.so
+vendor/lib/libcrypto-mdapp.so
+vendor/lib/libcurl-md.so
 vendor/lib/libcurl_xcap_md.so
 vendor/lib/libipsec_ims_shr.so
+vendor/lib/libladder.so
 vendor/lib/libmnetlink_v104.so
 vendor/lib/libmtkares.so
 vendor/lib/libmtkcutils.so
@@ -810,6 +813,7 @@ vendor/lib/libmtknetutils.so
 vendor/lib/libmtkproperty.so
 vendor/lib/libmtkrillog.so
 vendor/lib/libmtksysutils.so
+vendor/lib/libssl-mdapp.so
 vendor/lib/libstorage_otp.so
 vendor/lib/libsysenv.so
 vendor/lib/libutinterface_custom_md.so;DISABLE_DEPS
@@ -823,9 +827,12 @@ vendor/lib64/libcares_naptr.so
 vendor/lib64/libcarrierconfig.so
 vendor/lib64/libccci_util.so
 vendor/lib64/libcharon-ss.so
+vendor/lib64/libcrypto-mdapp.so
+vendor/lib64/libcurl-md.so
 vendor/lib64/libcurl_xcap_md.so
 vendor/lib64/libhydra.so
 vendor/lib64/libipsec_ims_shr.so
+vendor/lib64/libladder.so
 vendor/lib64/libmnetlink_v104.so
 vendor/lib64/libmtk-ril.so
 vendor/lib64/libmtkares.so
@@ -843,6 +850,7 @@ vendor/lib64/libmtkutils.so
 vendor/lib64/libratconfig.so
 vendor/lib64/librilfusion.so
 vendor/lib64/libsimaka.so
+vendor/lib64/libssl-mdapp.so
 vendor/lib64/libstrongswan.so
 vendor/lib64/libsysenv.so
 vendor/lib64/libutinterface_custom_md.so;DISABLE_DEPS
