@@ -129,6 +129,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.drm-service.clearkey
 
+# Boot control (A/B Updates)
+PRODUCT_PACKAGES += \
+    com.android.hardware.boot \
+    android.hardware.boot-service.default_recovery
+
 # Fastbootd
 PRODUCT_PACKAGES += \
     fastbootd
