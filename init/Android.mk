@@ -16,7 +16,7 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE       := fstab.mt6768.ramdisk
+LOCAL_MODULE       := fstab.mt6768.first_stage
 LOCAL_MODULE_STEM  := fstab.mt6768
 LOCAL_MODULE_CLASS := ETC
 LOCAL_SRC_FILES    := etc/fstab.mt6768
