@@ -366,6 +366,84 @@ vendor/bin/lib3a.ccu.dm
 vendor/bin/lib3a.ccu.pm
 
 # Camera (tuning)
+vendor/lib64/gc02m1b_mipi_raw_IdxMgr.so
+vendor/lib64/gc08a3_mipi_raw_IdxMgr.so
+vendor/lib64/gc6153_serial_yuv_IdxMgr.so
+vendor/lib64/gc8034_mipi_raw_IdxMgr.so
+vendor/lib64/ov02b1b_mipi_raw_IdxMgr.so
+vendor/lib64/pblcgc02m1b_mipi_raw_IdxMgr.so
+vendor/lib64/pblcgc08a3_mipi_raw_IdxMgr.so
+vendor/lib64/pblcgc6153_serial_yuv_IdxMgr.so
+vendor/lib64/pblcgc8034_mipi_raw_IdxMgr.so
+vendor/lib64/pblcov02b1b_mipi_raw_IdxMgr.so
+vendor/lib64/pblcs5kjn1_mipi_raw_IdxMgr.so
+vendor/lib64/pblcs5kjn1ext2_mipi_raw_IdxMgr.so
+vendor/lib64/s5kjn1_mipi_raw_IdxMgr.so
+vendor/lib64/s5kjn1ext2_mipi_raw_IdxMgr.so
+
+# Camera (Transsion)
+vendor/lib/vendor.transsion.hardware.trancam.trancamserver@1.0.so
+vendor/lib64/libImageEval.so
+vendor/lib64/libMtkSImage.so
+vendor/lib64/libTranASD.so
+vendor/lib64/libTranArcDro.so
+vendor/lib64/libTranArcFilter.so
+vendor/lib64/libTranArcHDR.so
+vendor/lib64/libTranArcLowLight.so
+vendor/lib64/libTranArcNightHawk.so
+vendor/lib64/libTranArcPicselfie.so
+vendor/lib64/libTranDenoise.so
+vendor/lib64/libTranExtImgProc.so
+vendor/lib64/libTranEyeDetect.so
+vendor/lib64/libTranFaceBeauty.so
+vendor/lib64/libTranFaceDetect.so
+vendor/lib64/libTranFaceDetectCoordinate.so
+vendor/lib64/libTranHumanLight.so
+vendor/lib64/libTranMegDualRefocus.so
+vendor/lib64/libTranPlatHW.so
+vendor/lib64/libTranSTPRRepair.so
+vendor/lib64/libTranSTSingleBlur.so
+vendor/lib64/libTranSlimBody.so
+vendor/lib64/libTranStSuperResolution.so
+vendor/lib64/libTranUndistort.so
+vendor/lib64/libTran_Log.so
+vendor/lib64/libTran_mtkPowerAPI.so
+vendor/lib64/libWaterMarkProc.so
+vendor/lib64/lib_sr_indep_ocl.so
+vendor/lib64/libabfadp.so
+vendor/lib64/libamipengine.so
+vendor/lib64/libanc_dc_base.so
+vendor/lib64/libarcsoft_beautyshot.so
+vendor/lib64/libarcsoft_dro.so
+vendor/lib64/libarcsoft_low_light_shot.so
+vendor/lib64/libarcsoft_night_hawk.so
+vendor/lib64/libarcsoft_picselfie_algorithm.so
+vendor/lib64/libcalculatesharpness.so
+vendor/lib64/libcam3_tranpriorityctrl.so
+vendor/lib64/libcam3_transerverengine.so
+vendor/lib64/libcamalgo.abf.so
+vendor/lib64/libdenoise.so
+vendor/lib64/libeyedetector.so
+vendor/lib64/libfacedetector.so
+vendor/lib64/libfacesattribute.so
+vendor/lib64/libportrait_repair_ocl.so
+vendor/lib64/libsdk_sr.so
+vendor/lib64/libsegmention.so
+vendor/lib64/libsegmentionPre.so
+vendor/lib64/libst_mobile.so
+vendor/lib64/libst_sr_models.so
+vendor/lib64/libstblur_capture_api.so
+vendor/lib64/libtf_asd_lib.so
+vendor/lib64/libtflite_native_gainference.so
+vendor/lib64/libtflite_native_inference.so
+vendor/lib64/libtflite_native_seginference.so
+vendor/lib64/libtranssion_beauty.so
+vendor/lib64/libtranssion_bodybeauty.so
+vendor/lib64/libtranssion_cal.so
+vendor/lib64/libundistort_64.so
+vendor/lib64/libwa_dof.so
+vendor/lib64/libwa_rtdof.so
+vendor/lib64/vendor.transsion.hardware.trancam.trancamserver@1.0.so
 
 # DRM (Widevine) - from Redmi/selene/selene:12/SP1A.210812.016/V13.0.1.0.SKUMIXM:user/release-keys
 vendor/lib64/libwvhidl.so
@@ -861,6 +939,8 @@ vendor/lib64/libverno.so
 vendor/lib64/libwo.so
 vendor/lib64/vendor.mediatek.hardware.mdmonitor@1.0.so
 vendor/lib64/vendor.mediatek.hardware.mtkradioex@2.0.so
+vendor/lib64/vendor.mediatek.hardware.mtkradioex@2.1.so
+vendor/lib64/vendor.mediatek.hardware.mtkradioex@2.2.so
 
 # Secure Element
 vendor/bin/hw/android.hardware.secure_element@1.2-service-mediatek
