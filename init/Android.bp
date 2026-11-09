@@ -65,6 +65,13 @@ prebuilt_etc {
     vendor: true,
 }
 
+prebuilt_etc {
+    name: "init.stnfc.rc",
+    src: "init.stnfc.rc",
+    relative_install_path: "init/hw",
+    vendor: true,
+}
+
 sh_binary {
     name: "init.insmod.sh",
     src: "bin/init.insmod.sh",

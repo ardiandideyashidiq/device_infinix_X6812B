@@ -1,0 +1,15 @@
+# ST21NFC HAL (android.hardware.nfc@1.2-service-st)
+#
+# The domain and its exec label come from system/sepolicy/vendor/hal_nfc_default.te;
+# only the device/socket access this vendor HAL needs is added here.
+
+allow hal_nfc_default st21nfc_device:chr_file rw_file_perms;
+
+allow hal_nfc_default vendor_nfc_socket:dir rw_dir_perms;
+allow hal_nfc_default vendor_nfc_socket:file create_file_perms;
+allow hal_nfc_default vendor_nfc_socket:sock_file create_file_perms;
+
+# init/vendor_init create /data/vendor/nfc_socket in init.stnfc.rc
+allow vendor_init vendor_nfc_socket:dir create_dir_perms;
+allow vendor_init vendor_nfc_socket:file create_file_perms;
+allow init vendor_nfc_socket:dir { getattr search };

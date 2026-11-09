@@ -29,6 +29,11 @@
 /dev/biometric u:object_r:biometric_device:s0
 /dev/m_bio_misc u:object_r:m_bio_misc_device:s0
 
+# NFC
+/(vendor|system/vendor)/bin/hw/android\.hardware\.nfc@1\.2-service-st u:object_r:hal_nfc_default_exec:s0
+/dev/st21nfc u:object_r:st21nfc_device:s0
+/data/vendor/nfc_socket(/.*)? u:object_r:vendor_nfc_socket:s0
+
 # Health
 /(vendor|system\/vendor)/bin/hw/android\.hardware\.health@2\.1-service         u:object_r:hal_health_default_exec:s0
 

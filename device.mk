@@ -211,7 +211,6 @@ PRODUCT_PACKAGES += \
 # NFC
 PRODUCT_PACKAGES += \
     com.android.nfc_extras \
-    android.hardware.nfc@1.2-service \
     android.hardware.secure_element@1.0-service-disabled \
     Tag
 
@@ -302,6 +301,7 @@ PRODUCT_COPY_FILES += \
 # Ramdisk
 PRODUCT_PACKAGES += \
     init.recovery.mt6768.rc \
+    init.stnfc.rc \
     init.connectivity.rc \
     init.modem.rc \
     init.mt6768.rc \
