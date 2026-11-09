@@ -103,6 +103,10 @@ blob_fixups: blob_fixups_user_type = {
         .add_needed('libutils-v32.so'),
     'vendor/lib64/hw/hwcomposer.mt6768.so': blob_fixup()
         .add_needed('libprocessgroup_shim.so'),
+    'vendor/lib64/hw/sensors.mt6768.so': blob_fixup()
+        .patchelf_version('0_17_2')
+        .replace_needed('libutils.so', 'libutils-v30.so')
+        .replace_needed('libstagefright_foundation.so', 'libstagefright_foundation-v33.so'),
     'vendor/lib64/libtranssion_bodybeauty.so': blob_fixup()
         .patchelf_version('0_17_2')
         .clear_symbol_version('AHardwareBuffer_allocate')
