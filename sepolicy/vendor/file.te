@@ -16,10 +16,6 @@ type vendor_fingerprint_data_file, data_file_type, file_type;
 type silead_fpd_device, dev_type;
 type silead_fpd_data_file, data_file_type, file_type;
 
-# NFC
-type st21nfc_device, dev_type;
-type vendor_nfc_socket, data_file_type, file_type;
-
 type vendor_sysfs_display, fs_type, sysfs_type;
 type vendor_sysfs_mali, fs_type, sysfs_type;
 
