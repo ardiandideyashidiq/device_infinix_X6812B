@@ -82,7 +82,16 @@ on fs
     # mount fstab
     mount_all /vendor/etc/fstab.mt6768 --early
 
+    # Boot control HAL (A/B slots, BCB)
+    start vendor.boot-hal-1-1
+
 on post-fs
+    # Support A/B feature for EMMC and UFS boot region
+    symlink /dev/block/sda /dev/block/mmcblk0boot0
+    symlink /dev/block/sdb /dev/block/mmcblk0boot1
+    symlink /dev/block/mmcblk0boot0 /dev/block/platform/bootdevice/by-name/preloader_a
+    symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
+
     # USB-OTG
     chown system system /sys/class/power_supply/usb/otg_switch
     chmod 0666 /sys/class/power_supply/usb/otg_switch
@@ -123,9 +132,18 @@ on post-fs
 
 on late-fs
     setprop init.userspace_reboot.userdata_remount.timeoutmillis 10000
+    wait_for_prop hwservicemanager.ready "true"
+    exec_start wait_for_keymaster
     mount_all /vendor/etc/fstab.mt6768 --late
 
 on post-fs-data
+    # Camera data dirs used by the Transsion/ArcSoft camera stack
+    mkdir /data/vendor/arcsoft 0777 system system
+    mkdir /data/vendor/multicam 0777 system system
+    mkdir /data/vendor/multicam/dualcam 0777 system system
+    mkdir /data/vendor/anc_yuvnight 0777 system system
+    mkdir /data/vendor/anc_yuvnight/working_dir 0777 system system
+
     # boot time fs tune
     write /sys/block/mmcblk0/queue/iostats 0
     write /sys/block/mmcblk0/queue/read_ahead_kb 2048

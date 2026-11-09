@@ -144,6 +144,11 @@ vendor/etc/audio_param/VoWDspAec_ParamUnitDesc.xml
 vendor/etc/audio_param/VoWHwVad_AudioParam.xml
 vendor/etc/audio_param/VoWHwVad_ParamUnitDesc.xml
 
+# Boot
+vendor/bin/hw/android.hardware.boot@1.1-service
+vendor/etc/init/android.hardware.boot@1.1-service.rc
+vendor/etc/vintf/manifest/android.hardware.boot@1.1.xml
+
 # Bluetooth
 vendor/bin/autobt
 vendor/bin/hw/android.hardware.bluetooth@1.0-service-mediatek
