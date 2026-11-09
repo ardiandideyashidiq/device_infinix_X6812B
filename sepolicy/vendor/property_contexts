@@ -28,6 +28,7 @@ vendor.fp.currentUid                        u:object_r:vendor_fingerprint_prop:s
 persist.vendor.fp.sensorUid                 u:object_r:vendor_fingerprint_prop:s0
 persist.vendor.sys.fp.fod.location.X_Y         u:object_r:vendor_fingerprint_prop:s0
 persist.vendor.sys.fp.fod.size.width_height    u:object_r:vendor_fingerprint_prop:s0
+vendor.silead.fp.ext.                          u:object_r:vendor_silead_fp_prop:s0
 
 # Key manager
 ro.vendor.mtk_key_manager_support                  u:object_r:vendor_mtk_default_prop:s0

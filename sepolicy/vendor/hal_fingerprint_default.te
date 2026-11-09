@@ -42,6 +42,15 @@ allow hal_fingerprint_default persist_data_file:file create_file_perms;
 allow hal_fingerprint_default self:netlink_kobject_uevent_socket { read create bind setopt };
 allow hal_fingerprint_default goodix_fingerprint_service:hwservice_manager { add find };
 
+# Silead fingerprint extension service
+allow hal_fingerprint_default silead_fpd_device:chr_file rw_file_perms;
+allow hal_fingerprint_default silead_fpd_data_file:dir rw_dir_perms;
+allow hal_fingerprint_default silead_fpd_data_file:file create_file_perms;
+set_prop(hal_fingerprint_default, vendor_silead_fp_prop)
+get_prop(hal_fingerprint_default, vendor_silead_fp_prop)
+allow vendor_init silead_fpd_device:chr_file { getattr setattr };
+allow init silead_fpd_device:chr_file { getattr setattr };
+
 set_prop(hal_fingerprint_default, vendor_mtk_default_prop)
 
 # Types

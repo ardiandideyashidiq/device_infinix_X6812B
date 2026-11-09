@@ -18,7 +18,12 @@
 
 # Fingerprint
 /(system\/vendor|vendor)/bin/hw/android\.hardware\.biometrics\.fingerprint@2\.1-service u:object_r:hal_fingerprint_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor\.silead\.hardware\.fingerprintext@1\.0-service u:object_r:hal_fingerprint_default_exec:s0
 /(vendor|system/vendor)/bin/hw/vendor\.focaltech\.hardware\.biometrics\.fingerprint@1\.0-service u:object_r:hal_fingerprint_default_exec:s0
+/dev/silead_fp u:object_r:silead_fpd_device:s0
+/dev/silead_stub u:object_r:silead_fpd_device:s0
+/data/vendor/silead(/.*)? u:object_r:silead_fpd_data_file:s0
+/persist/silead(/.*)? u:object_r:silead_fpd_data_file:s0
 /dev/kfp u:object_r:fpsensor_fp_device:s0
 /dev/fpsensor u:object_r:fpsensor_fp_device:s0
 /dev/biometric u:object_r:biometric_device:s0

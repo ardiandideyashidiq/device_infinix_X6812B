@@ -25,10 +25,10 @@
         </interface>
     </hal>
     <hal format="hidl" optional="true">
-        <name>vendor.oplus.hardware.biometrics.fingerprint</name>
-        <version>2.1</version>
+        <name>vendor.silead.hardware.fingerprintext</name>
+        <version>1.0</version>
         <interface>
-            <name>IBiometricsFingerprint</name>
+            <name>ISileadFingerprint</name>
             <instance>default</instance>
         </interface>
     </hal>

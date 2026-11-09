@@ -509,10 +509,17 @@ vendor/lib64/vendor.mediatek.hardware.pq@2.5.so
 vendor/lib64/vendor.mediatek.hardware.pq@2.6.so
 
 # Fingerprint
+vendor/bin/hw/vendor.silead.hardware.fingerprintext@1.0-service
+vendor/etc/init/vendor.silead.hardware.fingerprintext@1.0-service.rc
+vendor/etc/init/vendor.silead.rc
 vendor/lib/hw/fingerprint.silead.default.so
 vendor/lib/libsl_fp_impl.so
+vendor/lib/vendor.silead.hardware.fingerprintext@1.0-adapter-helper.so
+vendor/lib/vendor.silead.hardware.fingerprintext@1.0.so
 vendor/lib64/hw/fingerprint.silead.default.so
 vendor/lib64/libsl_fp_impl.so
+vendor/lib64/vendor.silead.hardware.fingerprintext@1.0-adapter-helper.so
+vendor/lib64/vendor.silead.hardware.fingerprintext@1.0.so
 
 # Firmware
 vendor/firmware/BT_FW.cfg
