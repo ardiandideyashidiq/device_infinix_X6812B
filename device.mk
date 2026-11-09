@@ -12,7 +12,7 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/developer_gsi_keys.mk)
 # Call proprietary blob setup
 $(call inherit-product, vendor/infinix/X6812B/X6812B-vendor.mk)
 
-PRODUCT_SHIPPING_API_LEVEL := 29
+PRODUCT_SHIPPING_API_LEVEL := 30
 
 # Dynamic Partition
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
@@ -102,8 +102,8 @@ PRODUCT_PACKAGES += \
     libbluetooth_audio_session
 
 # Bootanimation
-TARGET_SCREEN_WIDTH := 720
-TARGRT_SCREEN_HIGHT := 1280
+TARGET_SCREEN_WIDTH := 1080
+TARGET_SCREEN_HEIGHT := 2460
 
 # Camera
 PRODUCT_PACKAGES += \
