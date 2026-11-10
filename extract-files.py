@@ -103,6 +103,14 @@ blob_fixups: blob_fixups_user_type = {
         .add_needed('libutils-v32.so'),
     'vendor/lib64/hw/hwcomposer.mt6768.so': blob_fixup()
         .add_needed('libprocessgroup_shim.so'),
+    (
+        'vendor/lib/libutils-v30.so',
+        'vendor/lib64/libutils-v30.so',
+    ): blob_fixup()
+        # ABI shim copied from the stock system image; it calls the plain-C
+        # SetTaskProfiles/CgroupGetControllerPath that libprocessgroup no longer
+        # exports, which hardware/lineage/compat libprocessgroup_shim provides
+        .add_needed('libprocessgroup_shim.so'),
     'vendor/lib64/hw/sensors.mt6768.so': blob_fixup()
         .patchelf_version('0_17_2')
         .replace_needed('libutils.so', 'libutils-v30.so')
