@@ -9,6 +9,9 @@ DEVICE_PATH := device/infinix/X6812B
 # Installs gsi keys into ramdisk, to boot a developer GSI with verified boot.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/developer_gsi_keys.mk)
 
+# FUSE based emulated storage /sdcard (also used by the usbotg fuse service)
+$(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
+
 # Call proprietary blob setup
 $(call inherit-product, vendor/infinix/X6812B/X6812B-vendor.mk)
 
@@ -307,6 +310,8 @@ PRODUCT_PACKAGES += \
     init.modem.rc \
     init.mt6768.rc \
     init.mt6768.usb.rc \
+    init.project.rc \
+    init.ago.rc \
     init.sensor_1_0.rc \
     fstab.mt6768 \
     fstab.mt6768.first_stage \
@@ -399,6 +404,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     hostapd \
     wpa_supplicant
+
+# BOARD_WPA_SUPPLICANT_PRIVATE_LIB - the MTK driver command shim wpa_supplicant
+# and hostapd load at runtime (hardware/mediatek/wlan/wpa_supplicant_8_lib)
+PRODUCT_PACKAGES += \
+    lib_driver_cmd_mt66xx
 
 PRODUCT_PACKAGES += \
     libkeystore-engine-wifi-hidl \
