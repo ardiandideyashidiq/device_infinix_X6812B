@@ -9,8 +9,6 @@ DEVICE_PATH := device/infinix/X6812B
 # Installs gsi keys into ramdisk, to boot a developer GSI with verified boot.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/developer_gsi_keys.mk)
 
-$(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
-
 # Call proprietary blob setup
 $(call inherit-product, vendor/infinix/X6812B/X6812B-vendor.mk)
 
