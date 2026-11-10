@@ -67,10 +67,6 @@ BOARD_BOOT_HEADER_VERSION := 2
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 
 BOARD_KERNEL_CMDLINE += bootopt=64S3,32N2,64N2
-# The boot ramdisk is the recovery ramdisk (recovery-as-boot, no recovery
-# partition), so tell init to take the normal boot path instead of waiting for a
-# recovery/BCB decision. LK may still override this when it really wants recovery.
-BOARD_KERNEL_CMDLINE += androidboot.force_normal_boot=1
 
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_BASE := 0x40078000
