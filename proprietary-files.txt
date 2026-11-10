@@ -433,7 +433,7 @@ vendor/lib64/libfacedetector.so
 vendor/lib64/libfacesattribute.so
 vendor/lib64/libportrait_repair_ocl.so
 vendor/lib64/libsdk_sr.so
-vendor/lib64/libsegmention.so
+vendor/lib64/libsegmention.so;DISABLE_CHECKELF
 vendor/lib64/libsegmentionPre.so
 vendor/lib64/libst_mobile.so
 vendor/lib64/libst_sr_models.so
