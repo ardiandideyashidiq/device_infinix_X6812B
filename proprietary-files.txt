@@ -145,9 +145,9 @@ vendor/etc/audio_param/VoWHwVad_AudioParam.xml
 vendor/etc/audio_param/VoWHwVad_ParamUnitDesc.xml
 
 # Boot
-vendor/bin/hw/android.hardware.boot@1.1-service
-vendor/etc/init/android.hardware.boot@1.1-service.rc
-vendor/etc/vintf/manifest/android.hardware.boot@1.1.xml
+# The MTK android.hardware.boot@1.1-service blob and the AOSP module of the same
+# name install the same binary path, rc and VINTF fragment; keep the AOSP one
+# (that is what X670 does) and do not ship the blob.
 
 # Bluetooth
 vendor/bin/autobt
