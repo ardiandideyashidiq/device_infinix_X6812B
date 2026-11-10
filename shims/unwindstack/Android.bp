@@ -12,5 +12,8 @@ cc_library_shared {
     shared_libs: [
         "libunwindstack",
     ],
+    // Only the 64-bit libudf is shipped and only the LP64 build has
+    // Elf::GetRelPc(uint64_t, MapInfo*) - on arm32 uint64_t mangles as 'y'
+    compile_multilib: "64",
     vendor: true,
 }
