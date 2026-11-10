@@ -81,7 +81,11 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/lib64/libwvhidl.so',
         'vendor/lib64/mediadrm/libwvdrmengine.so',
     ): blob_fixup()
-        .replace_needed('libprotobuf-cpp-lite-3.9.1.so', 'libprotobuf-cpp-full-3.9.1.so'),
+        .replace_needed('libprotobuf-cpp-lite-3.9.1.so', 'libprotobuf-cpp-full-3.9.1.so')
+        # Widevine engines were built against BoringSSL that still exported the
+        # CBS_* accessors; current libcrypto keeps them hidden. The Lineage compat
+        # shim puts CBS_init back (CBS_data/CBS_len too).
+        .add_needed('libcrypto_shim.so'),
     (
         'vendor/bin/mnld',
         'vendor/lib/libaalservice.so',
