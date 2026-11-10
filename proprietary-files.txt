@@ -144,10 +144,6 @@ vendor/etc/audio_param/VoWDspAec_ParamUnitDesc.xml
 vendor/etc/audio_param/VoWHwVad_AudioParam.xml
 vendor/etc/audio_param/VoWHwVad_ParamUnitDesc.xml
 
-# Boot
-# The MTK android.hardware.boot@1.1-service blob and the AOSP module of the same
-# name install the same binary path, rc and VINTF fragment; keep the AOSP one
-# (that is what X670 does) and do not ship the blob.
 
 # Bluetooth
 vendor/bin/autobt
@@ -1050,7 +1046,6 @@ vendor/lib64/vendor.trustonic.tee@1.1.so
 system/lib/libutils.so:vendor/lib/libutils-v30.so;FIX_SONAME
 system/lib64/libutils.so:vendor/lib64/libutils-v30.so;FIX_SONAME
 
-# Memory - swapon_all in init.ago.rc
 vendor/etc/memfusion2/fstab.enableswap
 
 # USB

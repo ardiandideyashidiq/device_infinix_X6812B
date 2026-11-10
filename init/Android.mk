@@ -2,17 +2,6 @@
 # Copyright (C) 2025 LineageOS
 #
 # SPDX-License-Identifier: Apache-2.0
-#
-# Two files have to sit outside /vendor or /system/etc:
-#
-#   fstab   - first stage init looks for /first_stage_ramdisk/fstab.${ro.hardware}
-#             when the boot ramdisk is the recovery ramdisk
-#             (BOARD_USES_RECOVERY_AS_BOOT), and for the recovery image it moves
-#             to ${TARGET_RAMDISK_OUT} instead.
-#   rc      - the recovery init.rc does `import /init.recovery.${ro.hardware}.rc`
-#             at the root of the ramdisk, so a prebuilt_etc with recovery: true
-#             (which lands in /system/etc) is never read.
-#
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)

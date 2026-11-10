@@ -82,13 +82,8 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/lib64/mediadrm/libwvdrmengine.so',
     ): blob_fixup()
         .replace_needed('libprotobuf-cpp-lite-3.9.1.so', 'libprotobuf-cpp-full-3.9.1.so')
-        # Widevine engines were built against BoringSSL that still exported the
-        # CBS_* accessors; current libcrypto keeps them hidden. The Lineage compat
-        # shim puts CBS_init back (CBS_data/CBS_len too).
         .add_needed('libcrypto_shim.so'),
     'vendor/lib64/libudf.so': blob_fixup()
-        # Imports Elf::GetRelPc(uint64_t, const MapInfo*); current libunwindstack
-        # only exports the non-const overload - see shims/unwindstack
         .add_needed('libshim_unwindstack.so'),
     (
         'vendor/lib/vendor.silead.hardware.fingerprintext@1.0.so',
@@ -96,8 +91,6 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/lib64/vendor.silead.hardware.fingerprintext@1.0.so',
         'vendor/lib64/vendor.silead.hardware.fingerprintext@1.0-adapter-helper.so',
     ): blob_fixup()
-        # Uses android::hardware::details::gBnConstructorMap, which current
-        # libhidlbase no longer exports; libhidlbase-v32 (Lineage compat) still has it
         .replace_needed('libhidlbase.so', 'libhidlbase-v32.so'),
     (
         'vendor/bin/mnld',
@@ -124,9 +117,6 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/lib/libutils-v30.so',
         'vendor/lib64/libutils-v30.so',
     ): blob_fixup()
-        # ABI shim copied from the stock system image; it calls the plain-C
-        # SetTaskProfiles/CgroupGetControllerPath that libprocessgroup no longer
-        # exports, which hardware/lineage/compat libprocessgroup_shim provides
         .add_needed('libprocessgroup_shim.so'),
     'vendor/lib64/hw/sensors.mt6768.so': blob_fixup()
         .patchelf_version('0_17_2')

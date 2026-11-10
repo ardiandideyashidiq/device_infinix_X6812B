@@ -91,7 +91,6 @@ on fs
     # mount fstab
     mount_all /vendor/etc/fstab.mt6768 --early
 
-    # Boot control HAL (A/B slots, BCB)
     start vendor.boot-hal-1-1
 
 on post-fs
@@ -146,7 +145,6 @@ on late-fs
     mount_all /vendor/etc/fstab.mt6768 --late
 
 on post-fs-data
-    # Camera data dirs used by the Transsion/ArcSoft camera stack
     mkdir /data/vendor/arcsoft 0777 system system
     mkdir /data/vendor/multicam 0777 system system
     mkdir /data/vendor/multicam/dualcam 0777 system system
@@ -156,11 +154,9 @@ on post-fs-data
     mkdir /data/vendor/meg_working_dir/anc_yuvhdr 0777 system system
     mkdir /data/vendor/meg_working_dir/anc_yuvllhdr 0777 system system
 
-    # tranfs
     chown system system /tranfs
     chmod 0777 /tranfs
 
-    # Camera / video / FM device nodes
     chmod 0660 /dev/video0
     chown media system /dev/video0
     chmod 0660 /dev/video1
@@ -168,11 +164,9 @@ on post-fs-data
     chmod 0666 /dev/fm
     chown media media /dev/fm
 
-    # M4U
     chmod 0640 /proc/m4u
     chown system media /proc/m4u
 
-    # Transsion battery and torch sysfs
     chmod 0666 /sys/devices/platform/tran_battery/OTG_CTL
     chmod 0666 /sys/devices/platform/tran_battery_aging/AGING_FG
     chmod 0666 /sys/devices/platform/tran_battery_aging/AGING_CALCULATE
