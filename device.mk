@@ -386,6 +386,7 @@ PRODUCT_PACKAGES += \
 # VNDK
 PRODUCT_PACKAGES += \
     libutils-v32 \
+    libhidlbase-v32 \
     libui-v32
 
 PRODUCT_PACKAGES += \

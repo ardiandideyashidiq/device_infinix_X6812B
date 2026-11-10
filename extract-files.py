@@ -91,6 +91,15 @@ blob_fixups: blob_fixups_user_type = {
         # only exports the non-const overload - see shims/unwindstack
         .add_needed('libshim_unwindstack.so'),
     (
+        'vendor/lib/vendor.silead.hardware.fingerprintext@1.0.so',
+        'vendor/lib/vendor.silead.hardware.fingerprintext@1.0-adapter-helper.so',
+        'vendor/lib64/vendor.silead.hardware.fingerprintext@1.0.so',
+        'vendor/lib64/vendor.silead.hardware.fingerprintext@1.0-adapter-helper.so',
+    ): blob_fixup()
+        # Uses android::hardware::details::gBnConstructorMap, which current
+        # libhidlbase no longer exports; libhidlbase-v32 (Lineage compat) still has it
+        .replace_needed('libhidlbase.so', 'libhidlbase-v32.so'),
+    (
         'vendor/bin/mnld',
         'vendor/lib/libaalservice.so',
         'vendor/lib64/libaalservice.so',
