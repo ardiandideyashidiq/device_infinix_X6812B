@@ -1029,6 +1029,7 @@ vendor/bin/hw/vendor.trustonic.tee@1.1-service
 vendor/bin/mcDriverDaemon
 vendor/etc/init/tee.rc
 vendor/etc/init/trustonic.rc
+vendor/etc/init/trustonic_kmsetkey_ca.rc
 vendor/etc/init/vendor.trustonic.tee@1.1-service.rc
 vendor/lib/libMcClient.so
 vendor/lib/libTEECommon.so

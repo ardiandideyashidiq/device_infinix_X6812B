@@ -139,9 +139,6 @@ on post-fs
     chmod 0770 /mnt/vendor/protect_s
 
 on late-fs
-    setprop init.userspace_reboot.userdata_remount.timeoutmillis 10000
-    wait_for_prop hwservicemanager.ready "true"
-    exec_start wait_for_keymaster
     mount_all /vendor/etc/fstab.mt6768 --late
 
 on post-fs-data
