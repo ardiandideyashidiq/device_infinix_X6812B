@@ -86,6 +86,10 @@ blob_fixups: blob_fixups_user_type = {
         # CBS_* accessors; current libcrypto keeps them hidden. The Lineage compat
         # shim puts CBS_init back (CBS_data/CBS_len too).
         .add_needed('libcrypto_shim.so'),
+    'vendor/lib64/libudf.so': blob_fixup()
+        # Imports Elf::GetRelPc(uint64_t, const MapInfo*); current libunwindstack
+        # only exports the non-const overload - see shims/unwindstack
+        .add_needed('libshim_unwindstack.so'),
     (
         'vendor/bin/mnld',
         'vendor/lib/libaalservice.so',

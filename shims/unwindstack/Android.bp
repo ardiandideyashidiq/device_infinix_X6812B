@@ -1,0 +1,16 @@
+//
+// Copyright (C) 2025 LineageOS
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
+cc_library_shared {
+    name: "libshim_unwindstack",
+    srcs: [
+        "libshim_unwindstack.cpp",
+    ],
+    shared_libs: [
+        "libunwindstack",
+    ],
+    vendor: true,
+}
