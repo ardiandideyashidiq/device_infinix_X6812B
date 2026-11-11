@@ -144,7 +144,6 @@ ro.lmk.filecache_min_kb=153600
 ro.lmk.stall_limit_critical=40
 
 # Media
-debug.stagefright.ccodec=1
 media.c2.hal.selection=aidl
 debug.stagefright.c2inputsurface=-1
 media.c2.dmabuf.padding=512
