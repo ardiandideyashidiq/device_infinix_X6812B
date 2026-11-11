@@ -14,11 +14,11 @@ cc_prebuilt_library_shared {
         none: true,
     },
     target: {
-        android_arm: {
+        android_arm64: {
             srcs: ["libui-v32.so"],
         },
     },
-    compile_multilib: "32",
+    compile_multilib: "64",
     check_elf_files: false,
     vendor: true,
 }
@@ -32,11 +32,11 @@ cc_prebuilt_library_shared {
         none: true,
     },
     target: {
-        android_arm: {
+        android_arm64: {
             srcs: ["android.hardware.common-V2-ndk_platform.so"],
         },
     },
-    compile_multilib: "32",
+    compile_multilib: "64",
     check_elf_files: false,
     vendor: true,
 }
@@ -47,11 +47,11 @@ cc_prebuilt_library_shared {
         none: true,
     },
     target: {
-        android_arm: {
+        android_arm64: {
             srcs: ["android.hardware.common-V2-ndk_platform.so"],
         },
     },
-    compile_multilib: "32",
+    compile_multilib: "64",
     check_elf_files: false,
     vendor: true,
 }
