@@ -259,5 +259,16 @@ PRODUCT_VENDOR_PROPERTIES +=  \
     persist.log.tag.gralloc4=S \
     persist.log.tag.thermal_repeater=S \
     persist.log.tag.mtkpower_client=S \
-    persist.log.tag.wpfa_iptable_android=S
+    persist.log.tag.wpfa_iptable_android=S \
+    persist.log.tag.LMVDrv=S \
+    persist.log.tag.TuningMgr=S \
+    persist.log.tag.af_mgr_v3=S \
+    persist.log.tag.Camera3-OutputUtils=S \
+    persist.log.tag.MtkOmxVencV4L2=S \
+    persist.log.tag.MtkOmxVdecExV4L2=S \
+    persist.log.tag.OMXUtils=S \
+    persist.log.tag.mnld=S \
+    persist.log.tag.SatelliteController=S \
+    persist.log.tag.SatelliteModemInterface=S \
+    persist.log.tag.NRM-I-1=S
 	
