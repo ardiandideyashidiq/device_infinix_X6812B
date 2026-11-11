@@ -374,6 +374,34 @@ vendor/lib64/pblcs5kjn1_mipi_raw_IdxMgr.so
 vendor/lib64/pblcs5kjn1ext2_mipi_raw_IdxMgr.so
 vendor/lib64/s5kjn1_mipi_raw_IdxMgr.so
 vendor/lib64/s5kjn1ext2_mipi_raw_IdxMgr.so
+vendor/lib/gc02m1b_mipi_raw_tuning.so
+vendor/lib/gc08a3_mipi_raw_tuning.so
+vendor/lib/gc6153_serial_yuv_tuning.so
+vendor/lib/gc8034_mipi_raw_tuning.so
+vendor/lib/ov02b1b_mipi_raw_tuning.so
+vendor/lib/pblcgc02m1b_mipi_raw_tuning.so
+vendor/lib/pblcgc08a3_mipi_raw_tuning.so
+vendor/lib/pblcgc6153_serial_yuv_tuning.so
+vendor/lib/pblcgc8034_mipi_raw_tuning.so
+vendor/lib/pblcov02b1b_mipi_raw_tuning.so
+vendor/lib/pblcs5kjn1_mipi_raw_tuning.so
+vendor/lib/pblcs5kjn1ext2_mipi_raw_tuning.so
+vendor/lib/s5kjn1_mipi_raw_tuning.so
+vendor/lib/s5kjn1ext2_mipi_raw_tuning.so
+vendor/lib64/gc02m1b_mipi_raw_tuning.so
+vendor/lib64/gc08a3_mipi_raw_tuning.so
+vendor/lib64/gc6153_serial_yuv_tuning.so
+vendor/lib64/gc8034_mipi_raw_tuning.so
+vendor/lib64/ov02b1b_mipi_raw_tuning.so
+vendor/lib64/pblcgc02m1b_mipi_raw_tuning.so
+vendor/lib64/pblcgc08a3_mipi_raw_tuning.so
+vendor/lib64/pblcgc6153_serial_yuv_tuning.so
+vendor/lib64/pblcgc8034_mipi_raw_tuning.so
+vendor/lib64/pblcov02b1b_mipi_raw_tuning.so
+vendor/lib64/pblcs5kjn1_mipi_raw_tuning.so
+vendor/lib64/pblcs5kjn1ext2_mipi_raw_tuning.so
+vendor/lib64/s5kjn1_mipi_raw_tuning.so
+vendor/lib64/s5kjn1ext2_mipi_raw_tuning.so
 
 # Camera (Transsion)
 vendor/lib/vendor.transsion.hardware.trancam.trancamserver@1.0.so
