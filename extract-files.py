@@ -45,11 +45,6 @@ lib_fixups: lib_fixups_user_type = {
 }
 
 blob_fixups: blob_fixups_user_type = {
-    (
-        'vendor/lib/hw/fingerprint.default.so',
-        'vendor/lib64/hw/fingerprint.default.so',
-    ): blob_fixup()
-        .binary_regex_replace(b'fingerprint.silead\x00', b'fingerprint\x00\x00\x00\x00\x00\x00\x00\x00'),
     'vendor/lib/hw/audio.primary.mt6768.so': blob_fixup()
         .add_needed('libshim_audio.so')
         .replace_needed('libalsautils.so', 'libalsautils-mtk.so'),
@@ -81,13 +76,6 @@ blob_fixups: blob_fixups_user_type = {
         .add_needed('libcrypto_shim.so'),
     'vendor/lib64/libudf.so': blob_fixup()
         .add_needed('libshim_unwindstack.so'),
-    (
-        'vendor/lib/vendor.silead.hardware.fingerprintext@1.0.so',
-        'vendor/lib/vendor.silead.hardware.fingerprintext@1.0-adapter-helper.so',
-        'vendor/lib64/vendor.silead.hardware.fingerprintext@1.0.so',
-        'vendor/lib64/vendor.silead.hardware.fingerprintext@1.0-adapter-helper.so',
-    ): blob_fixup()
-        .replace_needed('libhidlbase.so', 'libhidlbase-v32.so'),
     (
         'vendor/bin/mnld',
         'vendor/lib/libaalservice.so',
