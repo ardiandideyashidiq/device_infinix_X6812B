@@ -1,3 +1,7 @@
+# Audio
+vendor.dts.audio.                                  u:object_r:vendor_dts_audio_prop:s0
+ro.vendor.dts.                                     u:object_r:vendor_dts_audio_prop:s0
+
 # Camera
 persist.vendor.camera.                      u:object_r:vendor_camera_prop:s0
 ro.vendor.mtk_cam_stereo_camera_support            u:object_r:vendor_mtk_camera_prop:s0

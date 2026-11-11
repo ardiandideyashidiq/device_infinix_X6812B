@@ -9,6 +9,7 @@ type vendor_sysfs_gesture, fs_type, sysfs_type;
 
 # Data
 type storage_dbg_data_file, file_type, core_data_file_type, data_file_type;
+type audio_vendor_data_file, file_type, data_file_type;
 
 # Fingerprint
 type vendor_sysfs_fingerprint, fs_type, sysfs_type;
