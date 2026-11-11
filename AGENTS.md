@@ -17,3 +17,5 @@ $ANDROID_ROOT/device/infinix/X6812B-kernel
 - you have access to github cli and github mcp. use it
 - if you find error, try this order: 1. github commit search, 2. aosp source code root cause analisys, 3. study other device tree configuration, 4. reverse engineer stock rom behaviour
 - make sure to check this device tree init, overlay, prop, propriatary blobs, patch script, etc
+- if the device is ext4+rw, you can directly make edit to proof hypothesis of the fix. if it works, make direct edit to the tree and commit
+- common error cause: selinux, missing blobs, wrong config, prop
