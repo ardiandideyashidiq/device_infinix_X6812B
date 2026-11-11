@@ -144,6 +144,8 @@ PRODUCT_PACKAGES += \
     fastbootd
 
 # Fingerprint
+PRODUCT_PACKAGES += \
+    com.android.hardware.biometrics.fingerprint.virtual
 
 # Gatekeeper
 PRODUCT_PACKAGES += \
