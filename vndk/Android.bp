@@ -25,6 +25,7 @@ cc_prebuilt_library_shared {
 
 cc_prebuilt_library_shared {
     name: "android.hardware.graphics.common-V2-ndk_platform-v32",
+    stem: "android.hardware.graphics.common-V2-ndk_platform",
     shared_libs: [
         "android.hardware.common-V2-ndk_platform-v32",
     ],
@@ -33,7 +34,7 @@ cc_prebuilt_library_shared {
     },
     target: {
         android_arm64: {
-            srcs: ["android.hardware.common-V2-ndk_platform.so"],
+            srcs: ["android.hardware.graphics.common-V2-ndk_platform.so"],
         },
     },
     compile_multilib: "64",
@@ -43,6 +44,7 @@ cc_prebuilt_library_shared {
 
 cc_prebuilt_library_shared {
     name: "android.hardware.common-V2-ndk_platform-v32",
+    stem: "android.hardware.common-V2-ndk_platform",
     strip: {
         none: true,
     },
