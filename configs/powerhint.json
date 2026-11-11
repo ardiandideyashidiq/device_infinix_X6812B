@@ -464,5 +464,30 @@
       "Duration": 0,
       "Value": "cc2"
     }
+  ],
+  "AdpfConfig": [
+    {
+      "Name": "Default",
+      "PID_On": false,
+      "PID_Po": 0.0,
+      "PID_Pu": 0.0,
+      "PID_I": 0.0,
+      "PID_I_Init": 0,
+      "PID_I_High": 0,
+      "PID_I_Low": 0,
+      "PID_Do": 0.0,
+      "PID_Du": 0.0,
+      "UclampMin_On": true,
+      "UclampMin_Init": 0,
+      "UclampMin_High": 1024,
+      "UclampMin_Low": 0,
+      "SamplingWindow_P": 8,
+      "SamplingWindow_I": 0,
+      "SamplingWindow_D": 0,
+      "StaleTimeFactor": 3.0,
+      "ReportingRateLimitNs": 16666666,
+      "TargetTimeFactor": 1.0,
+      "GpuBoost": false
+    }
   ]
 }
