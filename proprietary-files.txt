@@ -759,9 +759,6 @@ vendor/lib64/libvcodec_oal.so;DISABLE_DEPS
 vendor/lib64/vendor.mediatek.hardware.mtkcodecservice@1.1.so
 
 # Media (Codec2)
-vendor/bin/hw/android.hardware.media.c2@1.2-mediatek-64b;SYMLINK=vendor/bin/hw/android.hardware.media.c2@1.2-mediatek|2a23c8908e80733f56e0bcba6d02753d6c52d614
-vendor/etc/init/android.hardware.media.c2@1.2-mediatek.rc|e09ad9455fc75875f6ccef32572bfc0894c98ab5
-vendor/etc/vintf/manifest/manifest_media_c2_V1_2_default.xml|622d0480a3af7a162e37c56e0770213d8027000d
 vendor/lib64/libadpcmdec_mtk.so|29bff9cd502e5fe3e0c6f51a635c549807bcf27f
 vendor/lib64/libcodec2_hidl@1.0-v31.so;FIX_SONAME|0928bf918edab43d4f0c6ad652c7ec2e124a8bbc
 vendor/lib64/libcodec2_hidl@1.1-v31.so;FIX_SONAME|0aa9ed2643333a1cf11e3671c9b7c86f8db009ba

@@ -145,6 +145,9 @@ ro.lmk.stall_limit_critical=40
 
 # Media
 debug.stagefright.ccodec=1
+media.c2.hal.selection=aidl
+debug.stagefright.c2inputsurface=-1
+media.c2.dmabuf.padding=512
 media.stagefright.thumbnail.prefer_hw_codecs=true
 ro.vendor.mtk_config_max_dram_size=0x800000000
 vendor.mtk.vdec.waitkeyframeforplay=7
