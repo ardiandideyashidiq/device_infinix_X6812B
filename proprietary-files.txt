@@ -531,9 +531,12 @@ vendor/lib64/vendor.mediatek.hardware.pq@2.5.so
 vendor/lib64/vendor.mediatek.hardware.pq@2.6.so
 
 # Fingerprint
+vendor/bin/hw/android.hardware.biometrics.fingerprint@2.1-service
 vendor/bin/hw/vendor.silead.hardware.fingerprintext@1.0-service
+vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.rc
 vendor/etc/init/vendor.silead.hardware.fingerprintext@1.0-service.rc
 vendor/etc/init/vendor.silead.rc
+vendor/etc/vintf/manifest/android.hardware.biometrics.fingerprint@2.1-service.xml
 vendor/lib/hw/fingerprint.silead.default.so
 vendor/lib/libsl_fp_impl.so
 vendor/lib/vendor.silead.hardware.fingerprintext@1.0-adapter-helper.so
