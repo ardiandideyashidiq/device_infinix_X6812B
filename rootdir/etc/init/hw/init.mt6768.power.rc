@@ -3,7 +3,6 @@
 on early-init
     # GPU DVFS
     write /sys/kernel/ged/hal/timer_base_dvfs_margin 798
-    # Let GPU DVFS ramp above idle freq under load
     write /sys/kernel/ged/hal/custom_boost_gpu_freq 0
 
     # sched
@@ -12,7 +11,6 @@ on early-init
     write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
 
 on post-fs-data
-    # permissions for the nodes the power HAL writes to
     chown system system /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_fg_uclamp_min
     chmod 0660 /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_fg_uclamp_min
     chown system system /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_ta_uclamp_min
