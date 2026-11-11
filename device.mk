@@ -121,8 +121,7 @@ PRODUCT_PACKAGES += \
 # Display
 PRODUCT_PACKAGES += \
     android.hardware.graphics.composer@2.1-resources \
-    android.hardware.graphics.composer@2.1-resources.vendor \
-    android.hardware.graphics.composer@2.1-service
+    android.hardware.graphics.composer@2.3-service
 
 PRODUCT_PACKAGES += \
     libvulkan
