@@ -59,15 +59,16 @@
     <bool name="config_is_powerbutton_fps">true</bool>
 
     <!-- Side fingerprint sensor properties: displayId, X, Y, radius.
-         The nested array is declared inline because config_sfps_sensor_props_0
-         has no declaration in framework-res. -->
-    <array name="config_sfps_sensor_props">
-        <array>
-            <item>local:0</item>
-            <item>1080</item>
-            <item>1056</item>
-            <item>210</item>
-        </array>
+         The outer array holds resource ids; each points to its own array. -->
+    <array name="config_sfps_sensor_props" translatable="false">
+        <item>@array/config_sfps_sensor_props_0</item>
+    </array>
+
+    <array name="config_sfps_sensor_props_0" translatable="false">
+        <item>local:0</item>
+        <item>1080</item>
+        <item>1056</item>
+        <item>210</item>
     </array>
 
     <integer-array name="config_availableColorModes">
