@@ -1,5 +1,0 @@
-runtime_resource_overlay {
-    name: "Launcher3OverlayX6812B",
-    sdk_version: "current",
-    vendor: true,
-}

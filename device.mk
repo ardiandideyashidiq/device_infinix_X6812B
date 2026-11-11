@@ -329,17 +329,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_ENFORCE_RRO_TARGETS := *
 
 PRODUCT_PACKAGES += \
-    ApertureOverlayX6812B \
-    ApertureQRScannerOverlayX6812B \
-    CarrierConfigOverlayX6812B \
     FrameworksResTarget \
-    Launcher3OverlayX6812B \
-    LineageSDKOverlayX6812B \
-    LineageSettingsProviderOverlayX6812B \
     SettingsResTarget \
     SettingsProviderResTarget \
     SystemUIResTarget \
-    TelephonyOverlayX6812B \
     TetheringConfigTarget \
     WifiResTarget
 
