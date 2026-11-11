@@ -162,6 +162,16 @@
       "ResetOnInit": true
     },
     {
+      "Name": "FGSchedtuneBoost",
+      "Path": "/dev/stune/foreground/schedtune.boost",
+      "Values": [
+        "40",
+        "0"
+      ],
+      "ResetOnInit": true,
+      "DefaultIndex": 1
+    },
+    {
       "Name": "CDSchedtuneBoost",
       "Path": "/dev/stune/camera-daemon/schedtune.boost",
       "Values": [
@@ -444,6 +454,12 @@
       "Value": "50"
     },
     {
+      "PowerHint": "INTERACTION",
+      "Node": "FGSchedtuneBoost",
+      "Duration": 0,
+      "Value": "40"
+    },
+    {
       "PowerHint": "LAUNCH",
       "Node": "CPUBigClusterMaxFreq",
       "Duration": 3000,
@@ -490,6 +506,12 @@
       "Node": "GPUCustomBoostFreq",
       "Duration": 3000,
       "Value": "16"
+    },
+    {
+      "PowerHint": "LAUNCH",
+      "Node": "FGSchedtuneBoost",
+      "Duration": 3000,
+      "Value": "40"
     },
     {
       "PowerHint": "EXPENSIVE_RENDERING",
