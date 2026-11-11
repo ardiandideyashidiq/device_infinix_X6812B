@@ -382,7 +382,9 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     libutils-v32 \
     libhidlbase-v32 \
-    libui-v32
+    libui-v32 \
+    android.hardware.graphics.common-V2-ndk_platform-v32 \
+    android.hardware.common-V2-ndk_platform-v32
 
 PRODUCT_PACKAGES += \
     libunwindstack.vendor \
