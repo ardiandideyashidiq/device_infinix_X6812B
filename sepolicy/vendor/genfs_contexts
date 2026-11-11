@@ -34,9 +34,9 @@ genfscon proc /gesture_function                                                 
 genfscon proc /gesture_state                                                              u:object_r:proc_gesture_state:s0
 
 # GPU
-genfscon sysfs /devices/platform/13000000.mali/dvfs_period                                         u:object_r:vendor_sysfs_mali:s0
-genfscon sysfs /devices/platform/13000000.mali/js_ctx_scheduling_mode                              u:object_r:vendor_sysfs_mali:s0
-genfscon sysfs /devices/platform/13000000.mali/js_scheduling_period                                u:object_r:vendor_sysfs_mali:s0
+genfscon sysfs /devices/platform/13040000.mali/dvfs_period                                         u:object_r:vendor_sysfs_mali:s0
+genfscon sysfs /devices/platform/13040000.mali/js_ctx_scheduling_mode                              u:object_r:vendor_sysfs_mali:s0
+genfscon sysfs /devices/platform/13040000.mali/js_scheduling_period                                u:object_r:vendor_sysfs_mali:s0
 
 # Label wakeup nodes
 genfscon sysfs /devices/platform/11cb0000.i2c3/i2c-3/3-0018/wakeup                                  u:object_r:sysfs_wakeup:s0

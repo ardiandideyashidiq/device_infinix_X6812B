@@ -2,10 +2,10 @@
   "Nodes": [
     {
       "Name": "CPULittleClusterMaxFreq",
-      "Path": "/sys/devices/system/cpu/cpufreq/mtk/lcluster_max_freq",
+      "Path": "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq",
       "Values": [
         "-1",
-        "1700000",
+        "1800000",
         "1625000",
         "1500000",
         "1450000",
@@ -27,31 +27,32 @@
     },
     {
       "Name": "CPULittleClusterMinFreq",
-      "Path": "/sys/devices/system/cpu/cpufreq/mtk/lcluster_min_freq",
+      "Path": "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq",
       "Values": [
-        "1700000",
-        "1625000",
-        "1500000",
-        "1450000",
-        "1375000",
-        "1325000",
-        "1275000",
-        "1175000",
-        "1100000",
-        "1050000",
-        "999000",
-        "950000",
-        "900000",
-        "850000",
-        "774000",
         "500000",
+        "774000",
+        "850000",
+        "900000",
+        "950000",
+        "999000",
+        "1050000",
+        "1100000",
+        "1175000",
+        "1275000",
+        "1325000",
+        "1375000",
+        "1450000",
+        "1500000",
+        "1625000",
+        "1800000",
         "-1"
       ],
-      "ResetOnInit": true
+      "ResetOnInit": true,
+      "DefaultIndex": 0
     },
     {
       "Name": "CPUBigClusterMaxFreq",
-      "Path": "/sys/devices/system/cpu/cpufreq/mtk/bcluster_max_freq",
+      "Path": "/sys/devices/system/cpu/cpufreq/policy6/scaling_max_freq",
       "Values": [
         "-1",
         "2000000",
@@ -69,34 +70,35 @@
         "1087000",
         "998000",
         "909000",
-        "850000"        
+        "850000"
       ],
       "DefaultIndex": 0,
       "ResetOnInit": true
     },
     {
       "Name": "CPUBigClusterMinFreq",
-      "Path": "/sys/devices/system/cpu/cpufreq/mtk/bcluster_min_freq",
+      "Path": "/sys/devices/system/cpu/cpufreq/policy6/scaling_min_freq",
       "Values": [
-        "2000000",
-        "1950000",
-        "1900000",
-        "1850000",
-        "1800000",
-        "1710000",
-        "1621000",
-        "1532000",
-        "1443000",
-        "1354000",
-        "1295000",
-        "1176000",
-        "1087000",
-        "998000",
+        "850000",
         "909000",
-        "850000",        
+        "998000",
+        "1087000",
+        "1176000",
+        "1295000",
+        "1354000",
+        "1443000",
+        "1532000",
+        "1621000",
+        "1710000",
+        "1800000",
+        "1850000",
+        "1900000",
+        "1950000",
+        "2000000",
         "-1"
       ],
-      "ResetOnInit": true
+      "ResetOnInit": true,
+      "DefaultIndex": 0
     },
     {
       "Name": "GPUSchedMode",
@@ -299,11 +301,12 @@
     },
     {
       "Name": "DoubleTapToWakeEnable",
-      "Path": "/proc/touchpanel/double_tap_enable",
+      "Path": "/proc/gesture_function",
       "Values": [
-        "1",
-        "0"
-      ]
+        "cc2",
+        "cc1"
+      ],
+      "DefaultIndex": 0
     }
   ],
   "Actions": [
@@ -323,7 +326,7 @@
       "PowerHint": "SUSTAINED_PERFORMANCE",
       "Node": "CPULittleClusterMaxFreq",
       "Duration": 0,
-      "Value": "1700000"
+      "Value": "1800000"
     },
     {
       "PowerHint": "SUSTAINED_PERFORMANCE",
@@ -413,13 +416,13 @@
       "PowerHint": "LAUNCH",
       "Node": "CPULittleClusterMaxFreq",
       "Duration": 3000,
-      "Value": "1700000"
+      "Value": "1800000"
     },
     {
       "PowerHint": "LAUNCH",
       "Node": "CPULittleClusterMinFreq",
       "Duration": 3000,
-      "Value": "1700000"
+      "Value": "1800000"
     },
     {
       "PowerHint": "LAUNCH",
@@ -461,7 +464,7 @@
       "PowerHint": "DOUBLE_TAP_TO_WAKE",
       "Node": "DoubleTapToWakeEnable",
       "Duration": 0,
-      "Value": "1"
+      "Value": "cc2"
     }
   ]
 }
