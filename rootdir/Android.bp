@@ -18,6 +18,14 @@ prebuilt_etc {
     ramdisk_available: true
 }
 
+prebuilt_first_stage_ramdisk {
+    name: "fstab.mt6768.first_stage_ramdisk",
+    src: "etc/fstab.mt6768",
+    filename: "fstab.mt6768",
+    ramdisk: true,
+    install_in_root: true
+}
+
 prebuilt_etc {
     name: "ueventd.mtk.rc",
     filename: "ueventd.rc",
@@ -83,12 +91,19 @@ prebuilt_etc {
 
 prebuilt_etc {
     name: "init.insmod.cfg",
-    src: "init.insmod.cfg",
+    src: "bin/init.insmod.cfg",
     vendor: true
 }
 
 sh_binary {
     name: "init.insmod.sh",
     src: "bin/init.insmod.sh",
+    vendor: true
+}
+
+prebuilt_etc {
+    name: "init.mt6768.power.rc",
+    src: "etc/init/hw/init.mt6768.power.rc",
+    sub_dir: "init/hw",
     vendor: true
 }

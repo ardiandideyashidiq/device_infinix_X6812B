@@ -1,0 +1,61 @@
+# MTK power .rc configure
+
+on early-init
+    # GPU DVFS
+    write /sys/kernel/ged/hal/timer_base_dvfs_margin 798
+    # Let GPU DVFS ramp above idle freq under load
+    write /sys/kernel/ged/hal/custom_boost_gpu_freq 0
+
+    # sched
+    write /proc/sys/kernel/sched_latency_ns 4000000
+    write /proc/sys/kernel/sched_min_granularity_ns 500000
+    write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
+
+on post-fs-data
+    # permissions for the nodes the power HAL writes to
+    chown system system /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_fg_uclamp_min
+    chmod 0660 /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_fg_uclamp_min
+    chown system system /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_ta_uclamp_min
+    chmod 0660 /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_ta_uclamp_min
+    chown system system /proc/perfmgr/boost_ctrl/dram_ctrl/ddr
+    chmod 0660 /proc/perfmgr/boost_ctrl/dram_ctrl/ddr
+
+    chown system system /sys/kernel/ged/hal/gpu_boost_level
+    chmod 0660 /sys/kernel/ged/hal/gpu_boost_level
+    chown system system /sys/kernel/ged/hal/custom_boost_gpu_freq
+    chmod 0660 /sys/kernel/ged/hal/custom_boost_gpu_freq
+    chown system system /sys/kernel/ged/hal/timer_base_dvfs_margin
+    chmod 0660 /sys/kernel/ged/hal/timer_base_dvfs_margin
+    chown system system /sys/kernel/ged/hal/loading_base_dvfs_step
+    chmod 0660 /sys/kernel/ged/hal/loading_base_dvfs_step
+    chown system system /sys/kernel/ged/hal/dvfs_margin_value
+    chmod 0660 /sys/kernel/ged/hal/dvfs_margin_value
+
+    chown system system /sys/module/task_turbo/parameters/feats
+    chmod 0660 /sys/module/task_turbo/parameters/feats
+    chown system system /sys/kernel/fpsgo/fbt/boost_ta
+    chmod 0660 /sys/kernel/fpsgo/fbt/boost_ta
+
+    # mali sysfs for HWC/GPU hints
+    chown system system /sys/devices/platform/13040000.mali/js_ctx_scheduling_mode
+    chmod 0660 /sys/devices/platform/13040000.mali/js_ctx_scheduling_mode
+    chown system system /sys/devices/platform/13040000.mali/js_scheduling_period
+    chmod 0660 /sys/devices/platform/13040000.mali/js_scheduling_period
+    chown system system /sys/devices/platform/13040000.mali/dvfs_period
+    chmod 0660 /sys/devices/platform/13040000.mali/dvfs_period
+
+on boot
+    wait /proc/perfmgr/tchbst/user/usrtch 10
+    write /proc/perfmgr/tchbst/user/usrtch "enable 1"
+    write /proc/perfmgr/tchbst/user/usrtch "eas_boost 100"
+    write /proc/perfmgr/tchbst/user/usrtch "touch_opp 0"
+    write /proc/perfmgr/tchbst/user/usrtch "cluster_opp 0 0"
+    write /proc/perfmgr/tchbst/user/usrtch "cluster_opp 1 0"
+    write /proc/perfmgr/tchbst/user/usrtch "duration 300000000"
+    write /proc/perfmgr/tchbst/user/usrtch "active_time 300000"
+    write /proc/perfmgr/tchbst/user/usrtch "time_to_last_touch 600000"
+    write /proc/perfmgr/tchbst/user/usrtch "deboost_when_render 0"
+
+on property:sys.boot_completed=1
+    # PowerHAL Hint Processing
+    setprop vendor.powerhal.init 1
