@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Configure wifi tcp buffersizes in the form:
+         rmem_min,rmem_def,rmem_max,wmem_min,wmem_def,wmem_max -->
+    <string name="config_wifi_tcp_buffers" translatable="false">524288,1048576,4525824,524288,1048576,4525824</string>
+
+    <!-- Default access point SSID used for tethering -->
+    <string name="wifi_tether_configure_ssid_default" translatable="false">Infinix HOT 11S NFC</string>
+
+    <!-- Boolean indicating whether the wifi chipset supports background scanning mechanism. -->
+    <bool name="config_wifi_background_scan_support">true</bool>
+
+    <!-- Indicates that connected MAC randomization is supported on this device -->
+    <bool name="config_wifi_connected_mac_randomization_supported">true</bool>
+
+    <!-- Boolean indicating whether 802.11r Fast BSS Transition is enabled on this platform -->
+    <bool name="config_wifi_fast_bss_transition_enabled">true</bool>
+
+    <!-- Indicates that p2p MAC randomization is supported on this device -->
+    <bool name="config_wifi_p2p_mac_randomization_supported">true</bool>
+
+    <!-- Wifi driver supports Automatic channel selection (ACS) for softap -->
+    <bool name="config_wifi_softap_acs_supported">true</bool>
+
+    <!-- Wifi driver does not support WPA3-SAE for softap on this chipset.
+         Enabling it breaks WPA2/WPA3 transition mode networks. -->
+    <bool name="config_wifi_softap_sae_supported">false</bool>
+
+    <!-- Do not reset max client setting configuration during cloud configuration restore -->
+    <bool name="config_wifiSoftapResetMaxClientSettingConfig" translatable="false">false</bool>
+
+    <!-- Wifi driver supports 5GHz band for softap when chip support 5GHz -->
+    <bool name="config_wifiSoftap5ghzSupported" translatable="false">false</bool>
+
+    <!-- Indicate the driver support NL80211_REG_CHANGED event. -->
+    <bool name="config_wifiDriverSupportedNl80211RegChangedEvent" translatable="false">true</bool>
+
+    <!-- Integer indicating additional disconnect delay (in ms) after IMS onLost() indication is received -->
+    <integer name="config_wifiDelayDisconnectOnImsLostMs">1000</integer>
+
+    <integer-array name="config_wifiConnectedScanIntervalScheduleSec">
+        <item>86400</item>
+    </integer-array>
+
+    <integer-array name="config_wifiDisconnectedScanIntervalScheduleSec">
+        <item>15</item>
+        <item>15</item>
+        <item>15</item>
+        <item>15</item>
+        <item>15</item>
+        <item>15</item>
+        <item>15</item>
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
+    </integer-array>
+
+    <integer-array name="config_wifiRssiLevelThresholds">
+        <item>-93</item>
+        <item>-82</item>
+        <item>-74</item>
+        <item>-64</item>
+    </integer-array>
+
+</resources>

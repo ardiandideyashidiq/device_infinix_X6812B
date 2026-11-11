@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2025 The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Is the device capable of hot swapping an UICC Card -->
+    <bool name="config_hotswapCapable">true</bool>
+
+    <!-- Number of physical SIM slots on the device. -->
+    <integer name="config_num_physical_slots">2</integer>
+
+    <!-- If this is true, the screen will come on when you unplug usb/power/whatever. -->
+    <bool name="config_unplugTurnsOnScreen">true</bool>
+
+    <!-- When true use the linux /dev/input/event subsystem to detect the switch changes
+         on the headphone/microphone jack. -->
+    <bool name="config_useDevInputEventForAudioJack">true</bool>
+
+    <!-- Whether a software navigation bar should be shown. -->
+    <bool name="config_showNavigationBar">true</bool>
+
+    <!-- Flag specifying whether VoLTE should be available for carrier -->
+    <bool name="config_carrier_volte_available">true</bool>
+
+    <!-- Flag indicating whether we should enable the automatic brightness. -->
+    <bool name="config_automatic_brightness_available">true</bool>
+
+    <!-- Stability requirements in milliseconds for accepting a new brightness level. -->
+    <integer name="config_autoBrightnessBrighteningLightDebounce">2000</integer>
+    <integer name="config_autoBrightnessDarkeningLightDebounce">4000</integer>
+
+    <!-- Amount of time it takes for the light sensor to warm up in milliseconds. -->
+    <integer name="config_lightSensorWarmupTime">1000</integer>
+
+    <!-- Default screen brightness setting. -->
+    <item name="config_screenBrightnessSettingDefaultFloat" format="float" type="dimen">0.4</item>
+
+    <!-- Maximum screen brightness allowed by the power manager. -->
+    <item name="config_screenBrightnessSettingMaximumFloat" format="float" type="dimen">1.0</item>
+
+    <!-- Minimum screen brightness setting allowed by power manager. -->
+    <item name="config_screenBrightnessSettingMinimumFloat" format="float" type="dimen">0.0</item>
+
+    <!-- The bounding path of the cutout region of the main built-in display.
+         76x64px U-shaped notch, centred on a 1080px wide panel. -->
+    <string name="config_mainBuiltInDisplayCutout">M -38,0 L -38,64 L 38,64 L 38,0 Z</string>
+
+    <!-- Whether the display cutout region should be forced to black. -->
+    <bool name="config_fillMainBuiltInDisplayCutout">false</bool>
+
+    <!-- The default peak refresh rate. The panel supports 60Hz and 90Hz modes
+         (see DisplayMode id=1 alt=90Hz); peak stays at 60 so the framework does
+         not lock the display into the higher power mode. -->
+    <integer name="config_defaultPeakRefreshRate">60</integer>
+
+    <!-- Indicates whether device has a power button fingerprint sensor. -->
+    <bool name="config_is_powerbutton_fps">true</bool>
+
+    <!-- Side fingerprint sensor properties: displayId, X, Y, radius.
+         The nested array is declared inline because config_sfps_sensor_props_0
+         has no declaration in framework-res. -->
+    <array name="config_sfps_sensor_props">
+        <array>
+            <item>local:0</item>
+            <item>1080</item>
+            <item>1056</item>
+            <item>210</item>
+        </array>
+    </array>
+
+    <integer-array name="config_availableColorModes">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
+    <!-- List of biometric sensors on the device, in decreasing strength. -->
+    <string-array name="config_biometric_sensors">
+        <item>0:2:15</item>
+    </string-array>
+
+    <!-- Specifies whether to decouple the auto-suspend state of the device from the
+         display on/off state. -->
+    <bool name="config_powerDecoupleAutoSuspendModeFromDisplay">true</bool>
+
+    <!-- Specifies whether to decouple the interactive state of the device from the
+         display on/off state. -->
+    <bool name="config_powerDecoupleInteractiveModeFromDisplay">true</bool>
+
+    <!-- Whether device supports double tap to wake -->
+    <bool name="config_supportDoubleTapWake">true</bool>
+
+    <!-- Bytes that the PinnerService will pin for Home app -->
+    <integer name="config_pinnerHomePinBytes">6291456</integer>
+
+    <!-- List of comma separated package names for which the system will not show
+         crash dialogs. -->
+    <string name="config_appsNotReportingCrashes">com.google.android.tts</string>
+
+    <!-- Flag indicating whether the surfaceflinger has limited alpha compositing
+         functionality in hardware. -->
+    <bool name="config_sf_limitedAlpha">true</bool>
+
+    <!-- Whether the surface flinger is inefficient at performing a blur. -->
+    <bool name="config_sf_slowBlur">false</bool>
+
+    <!-- Amount of time in ms the user needs to press the relevant keys to trigger the
+         screenshot chord -->
+    <integer name="config_screenshotChordKeyTimeout">0</integer>
+
+    <!-- The max scale for the wallpaper when it's zoomed in -->
+    <item name="config_wallpaperMaxScale" format="float" type="dimen">1</item>
+
+    <!-- True if the device supports Sustained Performance Mode -->
+    <bool name="config_sustainedPerformanceModeSupported">true</bool>
+
+    <!-- ComponentName of a dream to show whenever the system would otherwise have
+         gone to sleep. -->
+    <string translatable="false" name="config_dozeComponent">com.android.systemui/com.android.systemui.doze.DozeService</string>
+
+    <!-- Enable doze alwaysOn Display -->
+    <bool name="config_dozeAlwaysOnDisplayAvailable">true</bool>
+
+    <!-- Control whether the always on display mode is enabled by default. -->
+    <bool name="config_dozeAlwaysOnEnabled">false</bool>
+
+    <!-- If true, the doze component is not started until after the screen has been
+         turned off and the screen off animation has been performed. -->
+    <bool name="config_dozeAfterScreenOffByDefault">true</bool>
+
+    <!-- The amount to scale fullscreen snapshots for Overview and snapshot starting
+         windows. -->
+    <item name="config_highResTaskSnapshotScale" format="float" type="dimen">0.7</item>
+
+    <!-- Default files to pin via Pinner Service -->
+    <string-array name="config_defaultPinnerServiceFiles" translatable="false">
+        <item>/apex/com.android.art/javalib/core-oj.jar</item>
+        <item>/apex/com.android.art/javalib/core-libart.jar</item>
+        <item>/system/framework/framework.jar</item>
+        <item>/system/framework/services.jar</item>
+        <item>/system/bin/surfaceflinger</item>
+        <item>/system_ext/priv-app/SystemUI/SystemUI.apk</item>
+    </string-array>
+
+    <!-- Whether to skip restoring network selection -->
+    <bool name="skip_restoring_network_selection">true</bool>
+
+    <!-- MMS user agent -->
+    <string name="config_mms_user_agent" translatable="false">Android-Mms/0.1</string>
+
+    <!-- Device VoLTE available -->
+    <bool name="config_device_volte_available">true</bool>
+
+    <!-- Device VT available -->
+    <bool name="config_device_vt_available">true</bool>
+
+    <!-- Voice/data/SMS auto fallback -->
+    <bool name="config_voice_data_sms_auto_fallback">true</bool>
+
+    <!-- Whether WM DisplayContent supports high performance transitions -->
+    <bool name="config_deviceSupportsHighPerfTransitions">false</bool>
+
+</resources>

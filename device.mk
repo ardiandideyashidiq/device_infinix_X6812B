@@ -325,22 +325,23 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.renderscript@1.0-impl
 
-# Runtime Resource Overlays 
+# Runtime Resource Overlays
+PRODUCT_ENFORCE_RRO_TARGETS := *
+
 PRODUCT_PACKAGES += \
     ApertureOverlayX6812B \
     ApertureQRScannerOverlayX6812B \
     CarrierConfigOverlayX6812B \
-    FingerprintResOverlayX6812B \
-    FrameworksResOverlayX6812B \
+    FrameworksResTarget \
     Launcher3OverlayX6812B \
     LineageSDKOverlayX6812B \
     LineageSettingsProviderOverlayX6812B \
-    SettingsOverlayX6812B \
-    SettingsProviderOverlayX6812B \
-    SystemUIOverlayX6812B \
+    SettingsResTarget \
+    SettingsProviderResTarget \
+    SystemUIResTarget \
     TelephonyOverlayX6812B \
-    TetheringResOverlayX6812B \
-    WifiResOverlayX6812B
+    TetheringConfigTarget \
+    WifiResTarget
 
 # Seccomp
 PRODUCT_COPY_FILES += \

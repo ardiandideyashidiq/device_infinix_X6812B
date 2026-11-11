@@ -1,4 +1,0 @@
-runtime_resource_overlay {
-    name: "SystemUIOverlayX6812B",
-    vendor: true,
-}

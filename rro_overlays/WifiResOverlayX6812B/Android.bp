@@ -1,5 +1,0 @@
-runtime_resource_overlay {
-    name: "WifiResOverlayX6812B",
-    theme: "WifiResOverlay",
-    vendor: true,
-}
