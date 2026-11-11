@@ -41,6 +41,9 @@ vendor/etc/audio_device.xml
 # Audio (aurisys)
 vendor/etc/aurisys_config.xml
 vendor/etc/aurisys_param/Speech_AudioParam.xml
+vendor/etc/audio_param/fs18xx.bin
+vendor/lib/libfsmaudio.so
+vendor/lib64/libfsmaudio.so
 
 # Audio (test path)
 
