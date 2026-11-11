@@ -44,7 +44,7 @@
     <item name="config_screenBrightnessSettingMinimumFloat" format="float" type="dimen">0.0</item>
 
     <!-- The bounding path of the cutout region of the main built-in display. -->
-    <string name="config_mainBuiltInDisplayCutout">M -38,0 L -38,64 L 38,64 L 38,0 Z</string>
+    <string name="config_mainBuiltInDisplayCutout">M -24,0 L -24,36 L 24,36 L 24,0 Z @dp</string>
 
     <!-- Whether the display cutout region should be forced to black. -->
     <bool name="config_fillMainBuiltInDisplayCutout">false</bool>
