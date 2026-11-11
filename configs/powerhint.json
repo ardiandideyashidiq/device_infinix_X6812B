@@ -132,6 +132,27 @@
       "DefaultIndex": 0
     },
     {
+      "Name": "GPUCustomBoostFreq",
+      "Path": "/sys/kernel/ged/hal/custom_boost_gpu_freq",
+      "Values": [
+        "31",
+        "20",
+        "16"
+      ],
+      "ResetOnInit": true,
+      "DefaultIndex": 0
+    },
+    {
+      "Name": "GEDMargin",
+      "Path": "/sys/kernel/ged/hal/dvfs_margin_value",
+      "Values": [
+        "10",
+        "25"
+      ],
+      "ResetOnInit": true,
+      "DefaultIndex": 0
+    },
+    {
       "Name": "TASchedtuneBoost",
       "Path": "/dev/stune/top-app/schedtune.boost",
       "Values": [
@@ -399,6 +420,30 @@
       "Value": "50"
     },
     {
+      "PowerHint": "INTERACTION",
+      "Node": "GPUCustomBoostFreq",
+      "Duration": 0,
+      "Value": "20"
+    },
+    {
+      "PowerHint": "INTERACTION",
+      "Node": "GEDMargin",
+      "Duration": 0,
+      "Value": "25"
+    },
+    {
+      "PowerHint": "INTERACTION",
+      "Node": "GPUDVFSInterval",
+      "Duration": 0,
+      "Value": "50"
+    },
+    {
+      "PowerHint": "INTERACTION",
+      "Node": "TABoostPerf",
+      "Duration": 0,
+      "Value": "50"
+    },
+    {
       "PowerHint": "LAUNCH",
       "Node": "CPUBigClusterMaxFreq",
       "Duration": 3000,
@@ -441,6 +486,12 @@
       "Value": "1"
     },
     {
+      "PowerHint": "LAUNCH",
+      "Node": "GPUCustomBoostFreq",
+      "Duration": 3000,
+      "Value": "16"
+    },
+    {
       "PowerHint": "EXPENSIVE_RENDERING",
       "Node": "PowerHALRenderingState",
       "Duration": 0,
@@ -450,13 +501,25 @@
       "PowerHint": "EXPENSIVE_RENDERING",
       "Node": "GPUDVFSInterval",
       "Duration": 0,
-      "Value": "75"
+      "Value": "50"
     },
     {
       "PowerHint": "EXPENSIVE_RENDERING",
       "Node": "GPUSchedMode",
       "Duration": 0,
       "Value": "1"
+    },
+    {
+      "PowerHint": "EXPENSIVE_RENDERING",
+      "Node": "GPUCustomBoostFreq",
+      "Duration": 0,
+      "Value": "16"
+    },
+    {
+      "PowerHint": "EXPENSIVE_RENDERING",
+      "Node": "GEDMargin",
+      "Duration": 0,
+      "Value": "25"
     },
     {
       "PowerHint": "DOUBLE_TAP_TO_WAKE",
@@ -477,7 +540,7 @@
       "PID_I_Low": 0,
       "PID_Do": 0.0,
       "PID_Du": 0.0,
-      "UclampMin_On": true,
+      "UclampMin_On": false,
       "UclampMin_Init": 0,
       "UclampMin_High": 1024,
       "UclampMin_Low": 0,

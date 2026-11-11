@@ -3,7 +3,7 @@
 on early-init
     # GPU DVFS
     write /sys/kernel/ged/hal/timer_base_dvfs_margin 798
-    write /sys/kernel/ged/hal/custom_boost_gpu_freq 0
+    write /sys/kernel/ged/hal/custom_boost_gpu_freq 31
 
     # sched
     write /proc/sys/kernel/sched_latency_ns 4000000
@@ -54,6 +54,22 @@ on boot
     write /proc/perfmgr/tchbst/user/usrtch "time_to_last_touch 600000"
     write /proc/perfmgr/tchbst/user/usrtch "deboost_when_render 0"
 
-on property:sys.boot_completed=1
-    # PowerHAL Hint Processing
-    setprop vendor.powerhal.init 1
+service vendor.gralloc-4-0 /vendor/bin/hw/android.hardware.graphics.allocator@4.0-service-mediatek
+    class hal animation
+    interface android.hardware.graphics.allocator@4.0::IAllocator default
+    user system
+    group graphics drmrpc
+    capabilities SYS_NICE
+    onrestart restart surfaceflinger
+    task_profiles ProcessCapacityHigh HighPerformance
+    override
+
+service vendor.hwcomposer-2-1 /vendor/bin/hw/android.hardware.graphics.composer@2.1-service
+    interface android.hardware.graphics.composer@2.1::IComposer default
+    class hal animation
+    user system
+    group graphics drmrpc
+    capabilities SYS_NICE
+    onrestart restart surfaceflinger
+    task_profiles ProcessCapacityHigh HighPerformance
+    override
