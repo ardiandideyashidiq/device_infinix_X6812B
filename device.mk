@@ -193,6 +193,9 @@ PRODUCT_PACKAGES += \
     android.hardware.light-service.lineage
 
 # Media
+PRODUCT_PACKAGES += \
+    android.hardware.media.c2@1.2-mediatek-64b
+
 PRODUCT_COPY_FILES += \
     $(call find-copy-subdir-files,*,$(DEVICE_PATH)/configs/media/,$(TARGET_COPY_OUT_VENDOR)/etc)
 

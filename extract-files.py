@@ -74,15 +74,6 @@ blob_fixups: blob_fixups_user_type = {
         # evaluateCaptureConfiguration()
         .binary_regex_replace(b'\x34\xE8\x87\x40\xB9', b'\x34\x28\x02\x80\x52'),
     (
-        'vendor/lib/libMtkOmxCore.so',
-        'vendor/lib64/libMtkOmxCore.so',
-    ): blob_fixup()
-        .binary_regex_replace(b'mtk.vendor.omx.core.log', b'ro.vendor.mtk.omx.log\x00\x00'),
-    'vendor/lib/libMtkOmxVdecEx.so': blob_fixup()
-        .replace_needed('libui.so', 'libui-v32.so')
-        .binary_regex_replace(b'ro.mtk_crossmount_support', b'ro.vendor.mtk_crossmount\x00')
-        .binary_regex_replace(b'ro.mtk_deinterlace_support', b'ro.vendor.mtk_deinterlace\x00'),
-    (
         'vendor/lib64/libwvhidl.so',
         'vendor/lib64/mediadrm/libwvdrmengine.so',
     ): blob_fixup()
