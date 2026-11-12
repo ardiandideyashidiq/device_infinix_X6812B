@@ -5,7 +5,7 @@
 # ship, so only the HAL service and its socket directory are set up.
 
 on post-fs
-    start nfc_hal_service
+    start vendor.st_nfc_hal_service
 
 on post-fs-data
     mkdir /data/vendor/nfc_socket 0770 nfc nfc
