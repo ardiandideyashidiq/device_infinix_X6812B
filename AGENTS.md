@@ -173,6 +173,34 @@ Do **not** compare only within one directory — most dependencies legitimately
 come from `/system` or the vendor tree, so a same-directory scan produces a long
 list of false positives.
 
+### Test compile without Soong
+
+Individual components can be test-compiled in seconds without waiting for a
+full Soong build:
+
+#### 1. Overlays (`aapt2 compile`)
+```bash
+python3 - <<'PY'
+import glob, subprocess, os, tempfile
+aapt2 = '../../../out/host/linux-x86/bin/aapt2'
+with tempfile.TemporaryDirectory() as tmpdir:
+    for ov in sorted(glob.glob('overlay/*')):
+        xmls = glob.glob(f'{ov}/res/**/*.xml', recursive=True)
+        if xmls:
+            res = subprocess.run([aapt2, 'compile', '-o', tmpdir, '--pseudo-localize'] + xmls,
+                                 cwd='../../..', capture_output=True, text=True)
+            print(f"{ov}: {'OK' if res.returncode == 0 else 'FAIL: ' + res.stderr}")
+PY
+```
+
+#### 2. C++ Shims (`clang++`)
+```bash
+prebuilts/clang/host/linux-x86/clang-r536225/bin/clang++ -c \
+    device/infinix/X6812B/libshims/libshim_unwindstack.cpp -o /tmp/shim.o \
+    -target aarch64-linux-android10000 \
+    -Isystem/unwindstack/include -Isystem/core/include -Isystem/libbase/include \
+    -std=c++20 -fPIC -Wall -Werror && rm -f /tmp/shim.o
+```
 ### What cannot be fixed without a build
 
 `stem`/`module name` collisions, duplicate install rules and AIDL version
