@@ -1,6 +1,3 @@
-# BatteryInfo
-/sys/devices/platform/mt_charger/power_supply/charger(/.*)?						u:object_r:sysfs_batteryinfo:s0
-
 # Camera
 /dev/cml421_ois(/.*)?                                                                   u:object_r:cml421_ois_device:s0
 /dev/cwvi5300                                                                           u:object_r:cwvi5300_device:s0
