@@ -24,4 +24,13 @@
             <instance>default</instance>
         </interface>
     </hal>
+    <!-- Trancam -->
+    <hal format="hidl" optional="true">
+        <name>vendor.transsion.hardware.trancam.trancamserver</name>
+        <version>1.0</version>
+        <interface>
+            <name>ITrancamserver</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
 </compatibility-matrix>
