@@ -122,7 +122,7 @@
         <MediaCodec name="c2.mtk.h263.encoder" type="video/3gpp" >
             <Alias name="OMX.MTK.VIDEO.ENCODER.H263" />
             <Limit name="size" min="176x144" max="176x144" />
-            <Limit name="alignment" value="16x16" />
+            <Limit name="alignment" value="32x16" />
             <Limit name="block-size" value="16x16" />
             <Limit name="concurrent-instances" max="10" />
             <Limit name="performance-point-640x480" value="30" />
@@ -130,7 +130,7 @@
         <MediaCodec name="c2.mtk.mpeg4.encoder" type="video/mp4v-es" >
             <Alias name="OMX.MTK.VIDEO.ENCODER.MPEG4" />
             <Limit name="size" min="176x144" max="640x480" />
-            <Limit name="alignment" value="16x16" />
+            <Limit name="alignment" value="32x16" />
             <Limit name="block-size" value="16x16" />
             <Limit name="concurrent-instances" max="10" />
             <Limit name="performance-point-640x480" value="30" />
@@ -138,14 +138,14 @@
         <MediaCodec name="c2.mtk.avc.encoder" type="video/avc" >
             <Alias name="OMX.MTK.VIDEO.ENCODER.AVC" />
             <Limit name="size" min="128x128" max="2560x1440" />
-            <Limit name="alignment" value="16x16" />
+            <Limit name="alignment" value="32x16" />
             <Limit name="block-size" value="16x16" />
             <Limit name="concurrent-instances" max="10" />
             <Limit name="performance-point-3840x2160" value="30" />
         </MediaCodec>
         <MediaCodec name="c2.mtk.avc.encoder.secure" type="video/avc" >
             <Limit name="size" min="128x128" max="1920x1088" />
-            <Limit name="alignment" value="16x16" />
+            <Limit name="alignment" value="32x16" />
             <Limit name="block-size" value="16x16" />
             <Limit name="concurrent-instances" max="10" />
             <Limit name="performance-point-1920x1088" value="30" />
@@ -154,7 +154,7 @@
         <MediaCodec name="c2.mtk.hevc.encoder" type="video/hevc" >
             <Alias name="OMX.MTK.VIDEO.ENCODER.HEVC" />
             <Limit name="size" min="160x128" max="2560x1440" />
-            <Limit name="alignment" value="16x16" />
+            <Limit name="alignment" value="32x16" />
             <Limit name="block-size" value="16x16" />
             <Limit name="quality" range="0-100" default="50" />
             <Limit name="concurrent-instances" max="10" />
