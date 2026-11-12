@@ -120,6 +120,18 @@ blob_fixups: blob_fixups_user_type = {
     'vendor/lib/libvpud_vcodec.so': blob_fixup()
         .sig_replace('01 27 75 E6', '00 27 75 E6')
         .sig_replace('D4 F8 B4 00 C5 F8 34 03', '4F F0 00 00 C5 F8 34 03'),
+    'vendor/lib64/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so': blob_fixup()
+        .sig_replace('AD 3D 43 F9 5F 01 00 F9 EA 11 83 D2', 'AD 3D 43 F9 4C 01 00 F9 EA 11 83 D2')
+        .sig_replace('3F 03 00 F9 7F 03 00 F9 1F 03 00 F9', '3F 03 00 F9 6B 03 00 F9 1F 03 00 F9'),
+    'vendor/lib64/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so': blob_fixup()
+        .sig_replace('AD 09 44 F9 5F 01 00 F9 EA 11 83 D2', 'AD 09 44 F9 4C 01 00 F9 EA 11 83 D2')
+        .sig_replace('3F 03 00 F9 7F 03 00 F9 1F 03 00 F9', '3F 03 00 F9 6B 03 00 F9 1F 03 00 F9'),
+    (
+        'vendor/lib/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so',
+        'vendor/lib/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so',
+    ): blob_fixup()
+        .sig_replace('01 70 15 48 78 44 00 68 C0 E9 00 22 13 48', '01 70 15 48 78 44 00 68 C0 E9 00 12 13 48')
+        .sig_replace('01 70 28 68 C0 E9 00 22 40 46', '01 70 28 68 C0 E9 00 12 40 46'),
     (
         'vendor/lib64/libcodec2_soft_mtk_alacdec.so',
         'vendor/lib64/libcodec2_soft_mtk_apedec.so',
