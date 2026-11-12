@@ -41,23 +41,18 @@
     <item name="config_screenBrightnessSettingMaximumFloat" format="float" type="dimen">1.0</item>
 
     <!-- Minimum screen brightness setting allowed by power manager. -->
-    <item name="config_screenBrightnessSettingMinimumFloat" format="float" type="dimen">0.0</item>
-
-    <!-- The bounding path of the cutout region of the main built-in display. -->
+    <item name="config_screenBrightnessSettingMinimumFloat" format="float" type="dimen">0.00392157</item>
     <string name="config_mainBuiltInDisplayCutout">M -24,0 L -24,36 L 24,36 L 24,0 Z @dp</string>
 
     <!-- Whether the display cutout region should be forced to black. -->
     <bool name="config_fillMainBuiltInDisplayCutout">false</bool>
 
     <!-- The default peak refresh rate. -->
-    <integer name="config_defaultPeakRefreshRate">60</integer>
+    <integer name="config_defaultPeakRefreshRate">90</integer>
 
     <integer-array name="config_availableColorModes">
         <item>0</item>
-        <item>1</item>
     </integer-array>
-
-    <!-- Specifies whether to decouple the auto-suspend state of the device from the
          display on/off state. -->
     <bool name="config_powerDecoupleAutoSuspendModeFromDisplay">true</bool>
 
@@ -91,13 +86,10 @@
 
     <!-- True if the device supports Sustained Performance Mode -->
     <bool name="config_sustainedPerformanceModeSupported">true</bool>
-
     <!-- ComponentName of a dream to show whenever the system would otherwise have
          gone to sleep. -->
     <string translatable="false" name="config_dozeComponent">com.android.systemui/com.android.systemui.doze.DozeService</string>
-
-    <!-- Enable doze alwaysOn Display -->
-    <bool name="config_dozeAlwaysOnDisplayAvailable">true</bool>
+    <bool name="config_dozeAlwaysOnDisplayAvailable">false</bool>
 
     <!-- Control whether the always on display mode is enabled by default. -->
     <bool name="config_dozeAlwaysOnEnabled">false</bool>

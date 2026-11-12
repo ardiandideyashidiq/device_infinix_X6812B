@@ -7,7 +7,7 @@
 
     <!-- Configure wifi tcp buffersizes in the form:
          rmem_min,rmem_def,rmem_max,wmem_min,wmem_def,wmem_max -->
-    <string name="config_wifi_tcp_buffers" translatable="false">524288,1048576,4525824,524288,1048576,4525824</string>
+    <string name="config_wifi_tcp_buffers" translatable="false">1730560,3461120,6922240,524288,1048576,4525824</string>
 
     <!-- Default access point SSID used for tethering -->
     <string name="wifi_tether_configure_ssid_default" translatable="false">Infinix HOT 11S NFC</string>
@@ -62,9 +62,9 @@
     </integer-array>
 
     <integer-array name="config_wifiRssiLevelThresholds">
-        <item>-93</item>
-        <item>-82</item>
-        <item>-74</item>
+        <item>-90</item>
+        <item>-80</item>
+        <item>-72</item>
         <item>-64</item>
     </integer-array>
 
