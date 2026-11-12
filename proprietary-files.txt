@@ -1,7 +1,7 @@
 # Device proprietary files - from vnd_x6812_h6912-user 11 RP1A.200720.011 758234 release-keys
 
 # AEE
-vendor/lib64/libudf.so|f54b34ea103c56065a02facf6a236ba15d61d1be
+vendor/lib64/libudf.so
 
 # Audio
 vendor/lib/hw/audio.primary.mt6768.so
@@ -535,8 +535,8 @@ vendor/lib64/libwa_rtdof.so
 vendor/lib64/vendor.transsion.hardware.trancam.trancamserver@1.0.so
 
 # DRM (Widevine)
-vendor/lib64/libwvhidl.so|f3ad61b6eec54877b0c74329674ec63055718819
-vendor/lib64/mediadrm/libwvdrmengine.so|1c9c8574b0b5e5ad9f44f9cec6a831db3fefaac2
+vendor/lib64/libwvhidl.so
+vendor/lib64/mediadrm/libwvdrmengine.so
 
 # Charger
 system/bin/kpoc_charger
@@ -647,11 +647,11 @@ vendor/firmware/st21nfc_fw7.bin
 vendor/firmware/wifi.cfg
 
 # Graphics (Hardware)
-vendor/bin/hw/android.hardware.graphics.allocator@4.0-service-mediatek|2d48357f089d3fb604d76004cd35a39e2b8d23d1
-vendor/lib/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so|b8593ecd499960ff890cbb7a2924287532312e8d
-vendor/lib/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so|3289de140b89f9000e6028318ff57a42c57497a3
-vendor/lib64/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so|ab9e87ca1d47af7722763228fe01e6797a5d1fcc
-vendor/lib64/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so|1ec68e4429d24b25912fea12c8998220e24bf48d
+vendor/bin/hw/android.hardware.graphics.allocator@4.0-service-mediatek
+vendor/lib/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so
+vendor/lib/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so
+vendor/lib64/hw/android.hardware.graphics.allocator@4.0-impl-mediatek.so
+vendor/lib64/hw/android.hardware.graphics.mapper@4.0-impl-mediatek.so
 
 # Graphics
 vendor/bin/hw/vendor.mediatek.hardware.gpu@1.0-service
@@ -1139,10 +1139,10 @@ vendor/bin/hw/android.hardware.usb@1.1-service-mediatek
 vendor/etc/init/android.hardware.usb@1.1-service-mediatek.rc
 
 # WiFi
-vendor/bin/stp_dump3|6dace620ae94a4f5721a6244818da4e9929f3f44
+vendor/bin/stp_dump3
 vendor/bin/wlan_assistant
-vendor/bin/wmt_launcher|e8194edfdfaf73e2a97064ccf94f0093d3c58291
-vendor/bin/wmt_loader|ac5e3962ee0d25cbdb3ecf44fdd3cd3940ffb025
+vendor/bin/wmt_launcher
+vendor/bin/wmt_loader
 vendor/etc/init/init_connectivity.rc
 vendor/etc/init/wlan_assistant.rc
-vendor/lib64/libwifitest.so|dd16ba6dea1707fd8652871f8c8f8cc3d146a956
+vendor/lib64/libwifitest.so
