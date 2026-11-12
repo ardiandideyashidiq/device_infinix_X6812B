@@ -53,6 +53,7 @@
     <integer-array name="config_availableColorModes">
         <item>0</item>
     </integer-array>
+    <!-- Specifies whether to decouple the auto-suspend state of the device from the
          display on/off state. -->
     <bool name="config_powerDecoupleAutoSuspendModeFromDisplay">true</bool>
 
