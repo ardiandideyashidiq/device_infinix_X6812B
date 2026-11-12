@@ -424,6 +424,16 @@ Debugging steps:
    `testkey` and bind-mounting over `/system_ext/app/TranssionCamera/TranssionCamera.apk`,
    then `stop && start`; test vendor `.so` changes with `adb push`, `chcon u:object_r:vendor_file:s0`,
    and `stop camerahalserver && start camerahalserver` (or `killall vpud`).
+4. Screen recording green screen: VirtualDisplay buffers (`GraphicBufferSource`,
+   usage `0x10300`) will allocate as AFBC if `vpu_runtime_caps` is 0 in
+   `android.hardware.graphics.{allocator,mapper}@4.0-impl-mediatek.so`.
+   `libdpframework.so` cannot decode AFBC in `DpEngine_RDMA` (`config frame error -9`),
+   leaving output YV12 frames zeroed (solid green).
+5. Screen recording green line / shadowing: odd multiples of 16 width
+   (e.g. 1072x2448) cause gralloc4 to align chroma stride to 16 bytes
+   (`uvPitch=544`), while `MTK_V4L2` venc expects `yPitch/2=536`. Keep
+   `<Limit name="alignment" value="32x16" />` in `media_codecs_c2.xml` so
+   encoders align width to 32 (e.g. 1056x2432).
 
 - `logcat` floods at 30+ fps with `TranCam/Plugin_TranStream` and `Hal3ARaw`;
   always query with `logcat -b main,crash -d -t 500 '*:W'` or `-s <tags>`, and
