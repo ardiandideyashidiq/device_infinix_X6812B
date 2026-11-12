@@ -1,21 +1,15 @@
 # BatteryInfo
-/sys/devices/platform/soc/11017000.i2c/i2c-5/5-006b/power_supply/charger(/.*)?						u:object_r:sysfs_batteryinfo:s0
+/sys/devices/platform/mt_charger/power_supply/charger(/.*)?						u:object_r:sysfs_batteryinfo:s0
 
 # Camera
 /dev/cml421_ois(/.*)?                                                                   u:object_r:cml421_ois_device:s0
 /dev/cwvi5300                                                                           u:object_r:cwvi5300_device:s0
 /data/vendor/anc_yuvnight/working_dir(/.*)?                                             u:object_r:vendor_megvii_data_file:s0
 /data/vendor/arcsoft(/.*)?                                                              u:object_r:vendor_arcsoft_data_file:s0
-/data/vendor/camera(/.*)?                                                               u:object_r:transsion_camera_data_file:s0
-/data/vendor/camera_watermark(/.*)?                                                     u:object_r:vendor_watermark_data_file:s0
 /data/vendor/multicam(/.*)?                                                             u:object_r:transsion_camera_data_file:s0
 
 # Data
-/data/storage_dbg(/.*)?                                                                 u:object_r:storage_dbg_data_file:s0
 /data/vendor/audio/dts(/.*)?                                                              u:object_r:audio_vendor_data_file:s0
-
-# Extcon
-/sys/devices/platform/extcon_usb/extcon/extcon0/cable.1/state                           u:object_r:sysfs_OTG_STATE_file:s0
 
 # Fingerprint
 /(system\/vendor|vendor)/bin/hw/android\.hardware\.biometrics\.fingerprint@2\.1-service u:object_r:hal_fingerprint_default_exec:s0
@@ -38,7 +32,6 @@
 
 # Power
 /vendor/bin/hw/android\.hardware\.power-service\.pixel-libperfmgr                      u:object_r:hal_power_default_exec:s0
-/sys/devices/platform/soc/11017000.i2c/i2c-5/5-0053/power_supply/charger(/.*)?                     u:object_r:sysfs_batteryinfo:s0
 
 # Sensor stuff
 /(vendor|system\/vendor)/bin/hw/android\.hardware\.sensors-service(\.multihal)?  u:object_r:hal_sensors_default_exec:s0
@@ -56,6 +49,3 @@
 
 # USB OTG
 /sys/devices/platform/(odm/odm:tran_battery|tran_battery)/OTG_CTL                     u:object_r:sysfs_OTG_CTL_file:s0
-
-# Vibrator
-/sys/devices/platform/soc/1101a000.i2c/i2c-6/6-005a/leds/vibrator_single(/.*)?           u:object_r:sysfs_vibrator:s0
