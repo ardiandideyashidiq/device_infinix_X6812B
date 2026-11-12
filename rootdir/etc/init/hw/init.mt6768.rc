@@ -102,11 +102,6 @@ on post-fs
     symlink /dev/block/mmcblk0boot0 /dev/block/platform/bootdevice/by-name/preloader_a
     symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
 
-    # USB-OTG
-    chown system system /sys/class/power_supply/usb/otg_switch
-    chmod 0666 /sys/class/power_supply/usb/otg_switch
-    write /sys/class/power_supply/usb/otg_switch 1
-
     # boot perf. tune
     write /proc/perfmgr/boost_ctrl/eas_ctrl/boot_boost "0 100"
     write /proc/perfmgr/boost_ctrl/eas_ctrl/boot_boost "1 100"
@@ -838,6 +833,9 @@ on property:sys.boot_completed=1
     # Enable ZRAM on boot_complete
     write /proc/sys/vm/swappiness 80
     swapon_all /vendor/etc/fstab.mt6768
+
+    # Enable USB OTG
+    write /sys/devices/platform/tran_battery/OTG_CTL 1
 
     # end boot time fs tune
     write /sys/block/mmcblk0/queue/iostats 1

@@ -55,7 +55,7 @@
 /(vendor|system/vendor)/bin/kmsetkey_ca.trustonic                                                  u:object_r:trustonic_kmsetkey_ca_exec:s0
 
 # USB OTG
-/sys/devices/platform/odm/odm:tran_battery/OTG_CTL                                     u:object_r:sysfs_OTG_CTL_file:s0
+/sys/devices/platform/(odm/odm:tran_battery|tran_battery)/OTG_CTL                     u:object_r:sysfs_OTG_CTL_file:s0
 
 # Vibrator
 /sys/devices/platform/soc/1101a000.i2c/i2c-6/6-005a/leds/vibrator_single(/.*)?           u:object_r:sysfs_vibrator:s0
