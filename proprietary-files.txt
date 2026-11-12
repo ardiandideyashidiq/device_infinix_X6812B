@@ -544,6 +544,11 @@ vendor/lib64/vendor.transsion.hardware.trancam.trancamserver@1.0.so
 vendor/lib64/libwvhidl.so
 vendor/lib64/mediadrm/libwvdrmengine.so
 
+# Charger
+system/bin/kpoc_charger
+system/etc/init/kpoc_charger.rc
+system/lib/libshowlogo.so
+
 # Display (AAL)
 vendor/lib/libaal_cust.so
 vendor/lib/libaal_key.so

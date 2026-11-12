@@ -114,6 +114,10 @@ TARGET_SCREEN_HEIGHT := 2460
 PRODUCT_PACKAGES += \
     Aperture
 
+# Charger
+PRODUCT_PACKAGES += \
+    libsuspend
+
 # Configstore
 PRODUCT_PACKAGES += \
     disable_configstore
@@ -392,6 +396,7 @@ PRODUCT_PACKAGES += \
     libui_shim \
     libprocessgroup_shim \
     libcrypto_shim \
+    libshim_showlogo \
     libshim_unwindstack
 
 # Wi-Fi

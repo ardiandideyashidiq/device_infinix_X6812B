@@ -1,12 +1,26 @@
-
 cc_library_shared {
     name: "libshim_audio",
     srcs: [
-        "libshim_audio.cpp"
+        "libshim_audio.cpp",
     ],
     shared_libs: [
         "libmedia_helper",
-        "libaudioutils"
+        "libaudioutils",
     ],
-    vendor: true
+    vendor: true,
+}
+
+cc_library_shared {
+    name: "libshim_showlogo",
+    srcs: [
+        "libshim_showlogo.cpp",
+        "libshim_showlogo_metadata.cpp",
+    ],
+    shared_libs: [
+        "libbinder",
+        "libgui",
+        "libui",
+        "libutils",
+    ],
+    compile_multilib: "32",
 }
