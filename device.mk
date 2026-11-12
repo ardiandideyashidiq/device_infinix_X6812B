@@ -382,9 +382,8 @@ PRODUCT_PACKAGES += \
 # VNDK
 PRODUCT_PACKAGES += \
     libutils-v32 \
-    libui-v32 \
-    android.hardware.graphics.common-V2-ndk_platform-v32 \
-    android.hardware.common-V2-ndk_platform-v32
+    libui-v30 \
+    android.hardware.graphics.common-V1-ndk_platform.vendor
 
 PRODUCT_PACKAGES += \
     libunwindstack.vendor \

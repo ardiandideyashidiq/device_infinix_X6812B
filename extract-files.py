@@ -125,6 +125,16 @@ blob_fixups: blob_fixups_user_type = {
         .replace_needed('libcodec2_soft_common.so', 'libcodec2_soft_common-v31.so')
         .replace_needed('libcodec2_vndk.so', 'libcodec2_vndk-v31.so')
         .replace_needed('libstagefright_foundation.so', 'libstagefright_foundation-v33.so'),
+    (
+        'vendor/lib64/libcodec2_hidl@1.0-v31.so',
+        'vendor/lib64/libcodec2_hidl@1.1-v31.so',
+        'vendor/lib64/libcodec2_hidl@1.2-v31.so',
+        'vendor/lib64/libcodec2_mtk_vdec.so',
+        'vendor/lib64/libcodec2_mtk_venc.so',
+        'vendor/lib64/libcodec2_vndk-v31.so',
+    ): blob_fixup()
+        .patchelf_version('0_17_2')
+        .replace_needed('libui-v32.so', 'libui-v30.so'),
 }  # fmt: skip
 
 module = ExtractUtilsModule(
