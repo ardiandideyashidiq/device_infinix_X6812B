@@ -1154,8 +1154,6 @@ vendor/bin/hw/android.hardware.secure_element@1.2-service-mediatek
 vendor/etc/init/android.hardware.secure_element@1.2-service-mediatek.rc
 
 # Sensors
-vendor/bin/hw/android.hardware.sensors@2.0-service-mediatek
-vendor/etc/init/android.hardware.sensors@2.0-service-mediatek.rc
 vendor/lib/libhwm.so
 vendor/lib/librgbwlightsensor.so
 vendor/lib64/hw/sensors.mt6768.so

@@ -32,7 +32,6 @@
 
 # Sensor stuff
 /(vendor|system\/vendor)/bin/hw/android\.hardware\.sensors-service(\.multihal)?  u:object_r:hal_sensors_default_exec:s0
-/(vendor|system\/vendor)/bin/hw/android\.hardware\.sensors@2\.0-service-mediatek u:object_r:hal_sensors_default_exec:s0
 
 # Trancam
 /(system\/vendor|vendor)/bin/hw/vendor\.transsion\.hardware\.trancam\.trancamserver@1\.0-service     u:object_r:trancamserver_exec:s0
