@@ -1,3 +1,5 @@
 allow untrusted_app unlabeled:filesystem getattr;
 
-get_prop(untrusted_app, vendor_camera_prop)
+get_prop(untrusted_app_all, vendor_camera_prop)
+allow untrusted_app_all proc_cl_cam_status:file r_file_perms;
+allow untrusted_app_all sysfs_tran_cam_file:file r_file_perms;
