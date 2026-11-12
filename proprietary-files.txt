@@ -471,6 +471,11 @@ vendor/lib64/s5kjn1_mipi_raw_tuning.so
 vendor/lib64/s5kjn1ext2_mipi_raw_tuning.so
 
 # Camera (Transsion)
+system_ext/lib64/libArcFilter.so
+system_ext/lib64/libCNamaSDK.so
+system_ext/lib64/libfuai.so
+system_ext/lib64/libiconv.so
+system_ext/lib64/libzbar.so
 vendor/lib/vendor.transsion.hardware.trancam.trancamserver@1.0.so
 vendor/lib64/libImageEval.so
 vendor/lib64/libMtkSImage.so
@@ -770,6 +775,7 @@ vendor/lib/modules/wmt_drv.ko
 
 # Keymaster
 vendor/bin/hw/android.hardware.keymaster@4.0-service.trustonic
+vendor/bin/trustonic_kmsetkey_ca
 vendor/etc/init/android.hardware.keymaster@4.0-service.trustonic.rc
 vendor/lib/hw/kmsetkey.trustonic.so;SYMLINK=vendor/lib/hw/kmsetkey.default.so
 vendor/lib/vendor.mediatek.hardware.keymaster_attestation@1.0.so
