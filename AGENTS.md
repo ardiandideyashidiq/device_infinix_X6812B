@@ -1,6 +1,6 @@
 - you are an aosp or lineage os expert. your job is to bring up device tree, fix error, debug, read source code, etc
 - lineage os root dir or $ANDROID_ROOT is on ../../../
-- you are not allowed to run grep or rg on the lineage os root path. instead, do targeted search like: grep -rnF "android.hardware.biometrics.fingerprint@2.1" $ANDROID_ROOT/hardware/interfaces/
+- you are not allowed to run grep or rg on the lineage os root path and build out dir. instead, do targeted search like: grep -rnF "android.hardware.biometrics.fingerprint@2.1" $ANDROID_ROOT/hardware/interfaces/
 - this device tree is build for LineageOS 22.2 (Android 15 QPR2, release `bp1a`)
 - you are not allowed to run build, ask user instead
 - for fixing blobs, you must read extract-files.py and proprietary-files.txt since they are connected
@@ -49,3 +49,153 @@ $ANDROID_ROOT/device/infinix/X6812B-kernel
     2. `SurfaceComposerClient.h` contains `using gui::LayerMetadata;` inside `namespace android`. Do not declare `struct LayerMetadata` in the same TU; split `android::LayerMetadata` ctor/vtable symbols into a separate TU (`libshim_showlogo_metadata.cpp`).
     3. in `getActiveDisplayConfig`, Android 15 `ui::DisplayMode` has an `id` field at `+0` and `std::vector` at `+20`. Never cast `DisplayConfig*` to `ui::DisplayMode*` directly (causes stack corruption and 4-byte offset shift); copy `resolution`, `dpi`, and `refreshRate` explicitly.
 - you need to update this file constantly after you fix something. update how to debug an issue, how to fix it, what mistakes you have made, etc.
+
+## Fast sepolicy validation (no full build)
+
+`checkpolicy` is a standalone host binary, so selinux can be validated in ~1 minute
+instead of a full build. The only input soong generates is `vendor_sepolicy.conf`,
+which is a plain `m4` invocation. Extract it from the ninja once:
+
+```
+python3 - <<'PY'
+lines=open('out/soong/build.lineage_X6812B.9.ninja', errors='replace').read().splitlines()
+start=next(i for i,l in enumerate(lines) if l.strip()=='# Module:  vendor_sepolicy.conf')
+for i in range(start, start+40):
+    if lines[i].startswith('    command = '):
+        cmd=lines[i].split('command = ',1)[1]
+        j=i+1
+        while j<len(lines) and lines[j].startswith('        ') and '=' not in lines[j][:20]:
+            cmd+=lines[j].strip(); j+=1
+        open('/tmp/opencode/run.sh','w').write(cmd.split(' # hash')[0]+'\n')
+        break
+PY
+```
+
+Then the loop is:
+
+```
+bash /tmp/opencode/run.sh          # regenerate vendor_sepolicy.conf
+out/host/linux-x86/bin/checkpolicy -C -M -c 30 \
+  -o /tmp/out.cil.raw out/soong/.intermediates/system/sepolicy/vendor_sepolicy.conf/android_common/X6812B/vendor_sepolicy.conf
+```
+
+Repeat the same extraction for `# Module:  sepolicy_neverallows.checkpolicy.conf`
+and run `checkpolicy -M` on it -- that is what catches `neverallow` violations
+(unknown types alone will not).
+
+Gotchas:
+- `checkpolicy` prints `ERROR 'unknown type X'` but still exits 0. Always read the
+  output, do not trust the exit code, and confirm the output file was created.
+- the `.conf` files are soong-generated and go stale. After editing any `.te`
+  you MUST re-run the `m4` step or you are validating the old policy.
+- extract the `m4` command from `out/soong/build.lineage_X6812B.9.ninja`
+  (the split ninja files, not the single `build.lineage_X6812B.ninja`).
+
+## selinux rules that bite
+
+- `init_daemon_domain(X)` expands to `domain_auto_trans(init, X_exec, X)`, so it
+  references a type named `X_exec`. Never delete a `*_exec` type just because a
+  literal grep finds no other user -- grep for the macro argument instead.
+  Same trap for `add_hwservice(X, Y)`, `binder_use(X)`, `r_dir_file(X, Y)`.
+- an "unused type" scan based on literal text matching is unsound. Prefer letting
+  `checkpolicy` prove it.
+- vendor policy cannot reference types declared in
+  `device/mediatek/sepolicy_vndr/base/private/` (that is platform policy). e.g.
+  `proc_cl_cam_status` lives there, so a vendor `.te` referencing it fails with
+  `unknown type`.
+- `vendor_default_prop` is under `treble_sysprop_neverallow`
+  (`system/sepolicy/private/property.te:158`). Granting it to a vendor domain
+  (e.g. `cameraserver`) compiles but fails the neverallow check.
+- versioned app domains are siblings, not children: `untrusted_app` and
+  `untrusted_app_29` are separate types, so `get_prop(untrusted_app, ...)` does
+  NOT cover an app with `targetSdkVersion=29`. Use `untrusted_app_all`, which
+  `untrusted_app_domain()` populates for every version.
+- when adding a `genfscon`/`file_contexts` path, test it on the running device
+  first (`ls -Z <path>`). A wrong path silently never matches -- e.g. our
+  `OTG_CTL` entry pointed at the mt6781 `odm/odm:tran_battery` path so the node
+  stayed labelled generic `sysfs`, and system_server's grant could never apply.
+- the shared `device/mediatek/sepolicy_vndr` already covers most MediaTek nodes
+  (charger, batteryinfo, wakeup, extcon, vibrator, block queues). Check there
+  before adding an entry; duplicated/bogus entries from another device tree are
+  the usual cause of dead policy in this tree.
+
+## build error triage
+
+- `out/error.log` is overwritten by each build attempt; always check its mtime
+  against file mtimes before trusting it. A `libmtknetutils.so does not exist`
+  error was purely a race: the build started 42s before
+  `./extract-files.py` finished writing 629 blobs. Re-run extract to completion,
+  then build.
+- two soong stages fail differently and it matters which:
+  - "analyzing Android.bp files and generating ninja" = soong/blueprint level
+    (missing src file, AIDL version clash, bad module).
+  - "writing legacy Make module rules" / `overriding commands for target` =
+    two modules install to the same destination. Grep
+    `out/soong/installs-lineage_X6812B.mk` for the target: it lists every rule
+    and you can see both sources.
+- `stem:` changes only the INSTALLED filename, not the module name. Two modules
+  can therefore produce one destination. A prebuilt blob whose `DT_NEEDED` is
+  baked in (e.g. `libui-v32.so` wanting
+  `android.hardware.graphics.common-V2-ndk_platform.so`) needs the installed
+  name to match, but check whether AOSP/Lineage already installs that name
+  (`hardware/lineage/compat`) before adding a `stem`.
+- never point a module at a source-built AIDL stub when a pure prebuilt exists:
+  compat's `*-ndk_platform` pulls `...-V2-ndk-source` while
+  `libui -> libgralloctypes` pulls `...-V6-ndk-source`, and soong rejects the
+  variant with "depends on multiple versions of the same aidl_interface".
+  Pure `vndk_prebuilt_shared`/`cc_prebuilt_library_shared` avoid this.
+- an output file existing from an older build (e.g. `build.lineage_X6812B.ninja`
+  from a run that succeeded before a later failure) does not mean the current
+  config builds. Check timestamps against the failing log.
+
+## blob / proprietary-files.txt conventions
+
+- pinning is driven by the `|hash` suffix, not by the `# ... - from` comment.
+  `extract_utils` treats a file with `file.hash is not None` as pinned and
+  restores it from the vendor tree instead of re-extracting.
+- a pinned file WITH a blob fixup needs TWO hashes: `source|fixed-up`. A single
+  hash holding the post-fixup value always mismatches, so the pin silently never
+  applies and the log says `fixed up` instead of `restored pinned file ...`.
+- do not put the literal substring ` - from` in a section header unless you
+  intend `update-sha1sums.py` to hash everything beneath it -- it keys off that
+  exact text and will also rewrite/collapse `source|fixup` pairs to one hash.
+- `update-sha1sums.py` should be idempotent: run it twice and confirm `git diff`
+  is empty the second time.
+- no real error, just noise: `restored pinned file with hash X has fixup hash X`
+  printed in RED is a request to add the second hash, not a failure -- it
+  returns `MATCH`. Compare with `BAD_FIXUP` which is a genuine error.
+- header comments must be accurate. This tree's file had AEE/Widevine/Graphics
+  Hardware/WiFi attributed to Redmi/realme firmware, but every one of those
+  blobs exists in the stock X6812B dump and only differs by the fixups in
+  `extract-files.py`. Only the Media (Codec2) section is external
+  (`mt6768-dev/android_device_xiaomi_mt6768-common`).
+
+## dead-config sweep discipline
+
+When sweeping `.rc` / `sepolicy` for dead entries (this tree inherited whole
+files from the mt6781 X670 tree in `9529c41 "replace sepolicy with X670 sepolic"`):
+
+- diff each file against the stock dump first. Anything identical to stock is
+  not your bug -- deleting it just creates divergence and noisier future diffs.
+  Only paths introduced BY this tree are suspects.
+- test every path on the running device before removing:
+  `for p in ...; do [ -e "$p" ] || echo "MISS $p"; done`
+- respect the fstype when building the test path: `genfscon sysfs` -> `/sys`,
+  `genfscon proc` -> `/proc`.
+- do not assume "absent" means dead for ueventd rules -- `ueventd` skips rules
+  for partitions that do not exist (`md1dsp`, `secro`, `misc2`).
+- `.rc` files shipped by the stock vendor image (e.g. `init_connectivity.rc`)
+  still contain services whose binaries are not extracted (`bt_dump`,
+  `wifi_dump`). init tolerates that; no need to patch the rc.
+- services declared `disabled` are not dead -- check for `start X` triggers
+  before removing (that is why `stp_dump` was only removable after confirming
+  `persist.vendor.connsys.coredump.mode` is 0).
+
+## device-tree safety
+
+- NEVER use `git reset --hard` in this tree; it destroys uncommitted user edits
+  (it wiped a manual `AGENTS.md` change). Use `git checkout -- <specific path>`
+  on only the files you touched.
+- before committing, `git status --short` and confirm you are not sweeping up
+  files the user edited.
+
