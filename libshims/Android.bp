@@ -24,3 +24,15 @@ cc_library_shared {
     ],
     compile_multilib: "32",
 }
+
+cc_library_shared {
+    name: "libshim_unwindstack",
+    srcs: [
+        "libshim_unwindstack.cpp",
+    ],
+    shared_libs: [
+        "libunwindstack",
+    ],
+    compile_multilib: "64",
+    vendor: true,
+}
