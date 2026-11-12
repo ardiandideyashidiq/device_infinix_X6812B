@@ -7,8 +7,8 @@
 cc_prebuilt_library_shared {
     name: "libui-v32",
     shared_libs: [
-        "android.hardware.graphics.common-V2-ndk_platform-v32",
-        "android.hardware.common-V2-ndk_platform-v32",
+        "android.hardware.graphics.common-V2-ndk_platform",
+        "android.hardware.common-V2-ndk_platform",
     ],
     strip: {
         none: true,
@@ -16,41 +16,6 @@ cc_prebuilt_library_shared {
     target: {
         android_arm64: {
             srcs: ["libui-v32.so"],
-        },
-    },
-    compile_multilib: "64",
-    check_elf_files: false,
-    vendor: true,
-}
-
-cc_prebuilt_library_shared {
-    name: "android.hardware.graphics.common-V2-ndk_platform-v32",
-    stem: "android.hardware.graphics.common-V2-ndk_platform",
-    shared_libs: [
-        "android.hardware.common-V2-ndk_platform-v32",
-    ],
-    strip: {
-        none: true,
-    },
-    target: {
-        android_arm64: {
-            srcs: ["android.hardware.graphics.common-V2-ndk_platform.so"],
-        },
-    },
-    compile_multilib: "64",
-    check_elf_files: false,
-    vendor: true,
-}
-
-cc_prebuilt_library_shared {
-    name: "android.hardware.common-V2-ndk_platform-v32",
-    stem: "android.hardware.common-V2-ndk_platform",
-    strip: {
-        none: true,
-    },
-    target: {
-        android_arm64: {
-            srcs: ["android.hardware.common-V2-ndk_platform.so"],
         },
     },
     compile_multilib: "64",
