@@ -58,11 +58,124 @@ These are not negotiable. Breaking them has caused real damage.
 # Refresh pinned-blob sha1s. Must be idempotent: a second run must leave
 # `git diff` empty.
 python3 update-sha1sums.py
-
-# sepolicy validation without a build (~1 min, see below)
-bash /tmp/opencode/run.sh && out/host/linux-x86/bin/checkpolicy -C -M -c 30 \
-  -o /tmp/out.cil.raw out/soong/.intermediates/system/sepolicy/vendor_sepolicy.conf/android_common/X6812B/vendor_sepolicy.conf
 ```
+
+Validation without a build is covered in
+[Validate without a full build](#validate-without-a-full-build).
+
+## Validate without a full build
+
+Most build failures come from host tools that are already built. `checkpolicy`,
+`check_elf_file` and `build_sepolicy` all live in `out/host/linux-x86/bin/`, so
+you can reproduce a failure in seconds and confirm a fix before asking for a
+build — which matters because you are not allowed to build.
+
+### General recipe
+
+Every failing ninja rule is written verbatim into `out/error.log` on a
+`Command:` line. Most of these commands are directly re-runnable. Extract it
+with Python (not `sed`, the line contains quotes, `&&` chains and escaped
+newlines):
+
+```bash
+python3 - <<'PY'
+import re
+log = open('out/error.log').read()
+m = re.search(r'^Command: /bin/bash -c "(.*)"\s*$', log, re.M)
+print(' '.join(m.group(1).split()))
+PY
+```
+
+Run the result and you get the identical error text without a build. Then, after
+changing the tree, re-run the same command to prove the fix. Note that for
+soong-generated inputs you must regenerate them first — see below.
+
+### sepolicy
+
+The only soong-generated input is `vendor_sepolicy.conf`, a plain `m4`
+invocation. Recover it once from the **split** ninja files (not the single
+`build.lineage_X6812B.ninja`, which does not contain the rule):
+
+```bash
+python3 - <<'PY'
+lines=open('out/soong/build.lineage_X6812B.9.ninja', errors='replace').read().splitlines()
+start=next(i for i,l in enumerate(lines) if l.strip()=='# Module:  vendor_sepolicy.conf')
+for i in range(start, start+40):
+    if lines[i].startswith('    command = '):
+        cmd=lines[i].split('command = ',1)[1]
+        j=i+1
+        while j<len(lines) and lines[j].startswith('        ') and '=' not in lines[j][:20]:
+            cmd+=lines[j].strip(); j+=1
+        open('/tmp/opencode/run.sh','w').write(cmd.split(' # hash')[0]+'\n')
+        break
+PY
+bash /tmp/opencode/run.sh
+out/host/linux-x86/bin/checkpolicy -C -M -c 30 -o /tmp/out.cil.raw \
+  out/soong/.intermediates/system/sepolicy/vendor_sepolicy.conf/android_common/X6812B/vendor_sepolicy.conf
+```
+
+Repeat the extraction for `# Module:  sepolicy_neverallows.checkpolicy.conf` and
+run `checkpolicy -M` on that too. **Unknown types alone will not catch
+`neverallow` violations** — you need both.
+
+Gotchas:
+
+- `checkpolicy` prints `ERROR 'unknown type X'` but **still exits 0**. Read the
+  output and confirm the output file was created; never trust the exit code.
+- The `.conf` files go stale. After editing any `.te` you **must** re-run `m4`
+  or you are validating the old policy.
+
+### prebuilt ELF dependencies
+
+`check_elf_file` validates that every `DT_NEEDED` of a prebuilt resolves to a
+declared `shared_libs` entry. The command in `error.log` is directly re-runnable:
+
+```bash
+python3 - <<'PY'
+import re
+log = open('out/error.log').read()
+m = re.search(r'check_elf_file (.*?) \) && \(touch', log, re.S)
+open('/tmp/opencode/elfcheck.sh','w').write(
+    'out/host/linux-x86/bin/check_elf_file ' + ' '.join(m.group(1).split()) + '\n')
+PY
+bash /tmp/opencode/elfcheck.sh     # exit 0 = pass, 2 = fail
+```
+
+It uses the already-built dependency `.so` files under
+`out/target/product/X6812B/obj/SHARED_LIBRARIES/`, so it is valid as long as
+those exist from a previous build.
+
+Useful standalone check across the whole vendor tree — does any `DT_NEEDED` name
+lack an installed file? Compare against `out/soong/installs-lineage_X6812B.mk`,
+which is the authoritative list of what gets installed:
+
+```bash
+python3 - <<'PY'
+import re, subprocess, glob, os
+inst=open('out/soong/installs-lineage_X6812B.mk', errors='replace').read()
+known={os.path.basename(m) for m in
+       re.findall(r'out/target/product/X6812B/[^\s:]*lib64/([A-Za-z0-9@._+-]+\.so):', inst)}
+vdir='vendor/infinix/X6812B/proprietary/vendor/lib64'
+known |= {os.path.basename(f) for f in glob.glob(vdir+'/*.so')}
+need={}
+for f in glob.glob(vdir+'/*.so'):
+    out=subprocess.run(['readelf','-d',f],capture_output=True,text=True).stdout
+    for n in re.findall(r'Shared library: \[([^\]]+)\]', out):
+        need.setdefault(n,set()).add(os.path.basename(f))
+for n,w in sorted(need.items()):
+    if n not in known: print(n, '<-', sorted(w)[:4])
+PY
+```
+
+Do **not** compare only within one directory — most dependencies legitimately
+come from `/system` or the vendor tree, so a same-directory scan produces a long
+list of false positives.
+
+### What cannot be fixed without a build
+
+`stem`/`module name` collisions, duplicate install rules and AIDL version
+clashes are resolved by soong's module graph, not by a standalone tool. For those
+you must reason from `Android.bp` and the installs file, then ask for a build.
 
 ## Debugging order
 
@@ -118,41 +231,32 @@ both sources.
 - **`extract-files.py` must finish before you build.** A
   `libmtknetutils.so does not exist` error was purely a race — the build started
   42 s before extract finished writing 629 blobs. Re-run extract to completion.
+- **A prebuilt ELF check failure usually means a SONAME mismatch, not a missing
+  dependency.** The checker compares each `DT_NEEDED` against the `DT_SONAME` of
+  every declared `shared_libs` entry
+  (`build/make/tools/check_elf_file.py`, `check_dt_needed`), *not* against their
+  filenames. So `DT_NEEDED "libui-v32.so" is not specified in shared_libs` fires
+  even when `libui-v32` **is** declared, because our module points at AOSP's
+  `libui.so` whose SONAME is `libui.so`.
+
+  The SONAME cannot be corrected from this tree: `prebuilts/vndk` is AOSP-owned
+  and `cc_prebuilt_library_shared` has no `soname` property. The sanctioned fix,
+  per `device/common/generate-android-bp-for-blobs.sh:37`, is
+  `check_elf_files: false` for that module. Apply it **per blob** with
+  `;DISABLE_CHECKELF` in `proprietary-files.txt` — never by restoring
+  `BUILD_BROKEN_PREBUILT_ELF_FILES`, which disables the check for all ~543
+  prebuilts and hides real problems.
+
+  Before treating a failure as a SONAME mismatch, confirm the dependency is
+  actually installed (see the vendor-tree scan under
+  [prebuilt ELF dependencies](#prebuilt-elf-dependencies)). A genuinely missing
+  library needs a blob, not a check bypass.
 
 ## SELinux
 
-### Validate without a build
-
-`checkpolicy` is a standalone host binary, so sepolicy can be checked in about a
-minute. The only soong-generated input is `vendor_sepolicy.conf`, which is a
-plain `m4` invocation. Recover that command once from the **split** ninja files
-(not the single `build.lineage_X6812B.ninja`):
-
-```bash
-python3 - <<'PY'
-lines=open('out/soong/build.lineage_X6812B.9.ninja', errors='replace').read().splitlines()
-start=next(i for i,l in enumerate(lines) if l.strip()=='# Module:  vendor_sepolicy.conf')
-for i in range(start, start+40):
-    if lines[i].startswith('    command = '):
-        cmd=lines[i].split('command = ',1)[1]
-        j=i+1
-        while j<len(lines) and lines[j].startswith('        ') and '=' not in lines[j][:20]:
-            cmd+=lines[j].strip(); j+=1
-        open('/tmp/opencode/run.sh','w').write(cmd.split(' # hash')[0]+'\n')
-        break
-PY
-```
-
-Then repeat for `# Module:  sepolicy_neverallows.checkpolicy.conf` and run
-`checkpolicy -M` on it. **Unknown types alone will not catch `neverallow`
-violations** — you need both checks.
-
-Gotchas:
-
-- `checkpolicy` prints `ERROR 'unknown type X'` but **still exits 0**. Read the
-  output and confirm the output file was created; never trust the exit code.
-- The `.conf` files go stale. After editing any `.te` you **must** re-run `m4`
-  or you are validating the old policy.
+Validate changes with the standalone loop in
+[Validate without a full build](#validate-without-a-full-build) — it catches both
+unknown types and `neverallow` violations in about a minute.
 
 ### Rules that bite
 
