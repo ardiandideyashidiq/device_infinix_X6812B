@@ -45,6 +45,8 @@ lib_fixups: lib_fixups_user_type = {
 }
 
 blob_fixups: blob_fixups_user_type = {
+    'system_ext/app/TranssionCamera/TranssionCamera.apk': blob_fixup()
+        .apktool_patch('blob-patches/TranssionCamera'),
     'system/lib/libshowlogo.so': blob_fixup()
         .add_needed('libshim_showlogo.so'),
     'vendor/lib/hw/audio.primary.mt6768.so': blob_fixup()
@@ -115,6 +117,11 @@ blob_fixups: blob_fixups_user_type = {
         .clear_symbol_version('AHardwareBuffer_lockPlanes')
         .clear_symbol_version('AHardwareBuffer_release')
         .clear_symbol_version('AHardwareBuffer_unlock'),
+    'vendor/lib64/libsdk_sr.so': blob_fixup()
+        .sig_replace('B3 28 00 51 B7 20 00 51', 'B3 40 00 51 B7 40 00 51'),
+    'vendor/lib/libvpud_vcodec.so': blob_fixup()
+        .sig_replace('01 27 75 E6', '00 27 75 E6')
+        .sig_replace('D4 F8 B4 00 C5 F8 34 03', '4F F0 00 00 C5 F8 34 03'),
     (
         'vendor/lib64/libcodec2_soft_mtk_alacdec.so',
         'vendor/lib64/libcodec2_soft_mtk_apedec.so',

@@ -2,3 +2,7 @@
 # and label them properly. Remove this dontaudit once properties are correctly labeled.
 # See: sepolicy/vendor/property_contexts for camera property entries.
 dontaudit hal_camera_default default_prop:file r_file_perms;
+dontaudit mtk_hal_camera default_prop:file r_file_perms;
+dontaudit mtk_hal_camera shell_data_file:dir search;
+dontaudit mtk_hal_camera system_data_file:dir search;
+dontaudit vpud_native default_prop:file r_file_perms;

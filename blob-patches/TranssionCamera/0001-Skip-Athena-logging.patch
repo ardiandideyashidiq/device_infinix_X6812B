@@ -1,0 +1,76 @@
+diff --git a/smali/com/transsion/camera/athena/AnalyticsImpl.smali b/smali/com/transsion/camera/athena/AnalyticsImpl.smali
+index c860a86..cc0acd7 100644
+--- a/smali/com/transsion/camera/athena/AnalyticsImpl.smali
++++ b/smali/com/transsion/camera/athena/AnalyticsImpl.smali
+@@ -238,7 +238,6 @@
+     const-wide p0, 0x195e85a80fL
+ 
+     .line 68
+-    invoke-static {p0, p1, v8, v9, p2}, Ltranssion/log/Athena;->log(JLjava/lang/String;ILandroid/os/Bundle;)V
+ 
+     goto :goto_2
+ 
+@@ -246,7 +245,6 @@
+     const-wide p0, 0x195e85a80eL
+ 
+     .line 65
+-    invoke-static {p0, p1, v4, v9, p2}, Ltranssion/log/Athena;->log(JLjava/lang/String;ILandroid/os/Bundle;)V
+ 
+     goto :goto_2
+ 
+@@ -254,7 +252,6 @@
+     const p0, 0xa6466d
+ 
+     .line 62
+-    invoke-static {p0, v0, v9, p2}, Ltranssion/log/Athena;->log(ILjava/lang/String;ILandroid/os/Bundle;)V
+ 
+     goto :goto_2
+ 
+@@ -262,7 +259,6 @@
+     const p0, 0xa6466e
+ 
+     .line 59
+-    invoke-static {p0, v1, v9, p2}, Ltranssion/log/Athena;->log(ILjava/lang/String;ILandroid/os/Bundle;)V
+ 
+     goto :goto_2
+ 
+@@ -270,7 +266,6 @@
+     const-wide p0, 0x195e85a80dL
+ 
+     .line 56
+-    invoke-static {p0, p1, v3, v9, p2}, Ltranssion/log/Athena;->log(JLjava/lang/String;ILandroid/os/Bundle;)V
+ 
+     goto :goto_2
+ 
+@@ -278,7 +273,6 @@
+     const p0, 0xa6466c
+ 
+     .line 53
+-    invoke-static {p0, v7, v9, p2}, Ltranssion/log/Athena;->log(ILjava/lang/String;ILandroid/os/Bundle;)V
+ 
+     goto :goto_2
+ 
+@@ -286,7 +280,6 @@
+     const-wide p0, 0x195e85a80cL
+ 
+     .line 50
+-    invoke-static {p0, p1, v2, v9, p2}, Ltranssion/log/Athena;->log(JLjava/lang/String;ILandroid/os/Bundle;)V
+ 
+     goto :goto_2
+ 
+@@ -294,7 +287,6 @@
+     const p0, 0xa64669
+ 
+     .line 47
+-    invoke-static {p0, v6, v9, p2}, Ltranssion/log/Athena;->log(ILjava/lang/String;ILandroid/os/Bundle;)V
+ 
+     goto :goto_2
+ 
+@@ -302,7 +294,6 @@
+     const p0, 0xa6466a
+ 
+     .line 44
+-    invoke-static {p0, v5, v9, p2}, Ltranssion/log/Athena;->log(ILjava/lang/String;ILandroid/os/Bundle;)V
+ 
+     :goto_2
+     return-void

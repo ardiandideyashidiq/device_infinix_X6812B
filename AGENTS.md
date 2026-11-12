@@ -117,6 +117,8 @@ out/host/linux-x86/bin/checkpolicy -C -M -c 30 -o /tmp/out.cil.raw \
 Repeat the extraction for `# Module:  sepolicy_neverallows.checkpolicy.conf` and
 run `checkpolicy -M` on that too. **Unknown types alone will not catch
 `neverallow` violations** — you need both.
+  (Its `.conf` is under `android_common/sepolicy_neverallows.checkpolicy.conf`,
+  with no `<device>` subdirectory.)
 
 Gotchas:
 
@@ -284,6 +286,12 @@ unknown types and `neverallow` violations in about a minute.
 - **The shared `device/mediatek/sepolicy_vndr` already covers most MTK nodes**
   (charger, batteryinfo, wakeup, extcon, vibrator, block queues). Check there
   before adding an entry.
+- **`camerahalserver` runs as `mtk_hal_camera`**, not `hal_camera_default`, and
+  `venc_srv` runs as `vpud_native`; put `default_prop` `dontaudit` rules on
+  those domains.
+- **Dropping `;PRESIGNED` from a vendor/system_ext APK changes its SELinux
+  domain** from `untrusted_app_*` to `platform_app` (`certificate: "platform"`),
+  so verify `sepolicy/vendor/platform_app.te` has the app's camera/sysfs grants.
 
 ## Proprietary blobs
 
@@ -307,6 +315,9 @@ unknown types and `neverallow` violations in about a minute.
 - **`restored pinned file with hash X has fixup hash X` in RED is not an error.**
   It is a request to add the second hash and returns `MATCH`. Only `BAD_FIXUP`
   is a real failure.
+- **`apktool_patch()` requires at least one pre-existing modified file** in
+  the patch: `fixups_blob.py` runs `git add` on existing affected paths and
+  `git commit`, which fails with `nothing to commit` on new-file-only patches.
 
 ## Dead-config sweeps
 
@@ -398,6 +409,39 @@ Before removing a `.rc` line, sepolicy path, or blob:
   (`/sys/devices/system/cpu/cpufreq/`, `/sys/kernel/ged/hal/`), EAS/stune
   (`/dev/stune/`). Watch for kernel ABI mismatches, e.g. a 4.14 kernel rejecting
   newer uclamp `sched_setattr` with `E2BIG`/`err=7`.
+
+### Camera & Media (`TranssionCamera` / Codec2)
+
+Debugging steps:
+
+1. Separate app crashes from HAL/kernel failures: clear tombstones and logs,
+   exercise one mode at a time (`AI CAM`, `VIDEO`, `BEAUTY`, `PORTRAIT`,
+   `SUPER NIGHT`, `DOCUMENTS`), then inspect `logcat -b crash -d`,
+   `/data/tombstones/`, and `dmesg | grep -E "avc: denied|MTK_V4L2|MTK_VCODEC"`.
+2. Isolate Codec2/VPUD from `StagefrightRecorder`: test `screenrecord --time-limit 2 /data/local/tmp/sr.mp4`
+   while watching `logcat -b main -d -s VPUD:* C2MtkVenc:* MPEG4Writer:* MediaRecorder:*`.
+3. Test APK smali/dex changes live without rebuilding by signing with
+   `testkey` and bind-mounting over `/system_ext/app/TranssionCamera/TranssionCamera.apk`,
+   then `stop && start`; test vendor `.so` changes with `adb push`, `chcon u:object_r:vendor_file:s0`,
+   and `stop camerahalserver && start camerahalserver` (or `killall vpud`).
+
+- `logcat` floods at 30+ fps with `TranCam/Plugin_TranStream` and `Hal3ARaw`;
+  always query with `logcat -b main,crash -d -t 500 '*:W'` or `-s <tags>`, and
+  check `/data/tombstones/` directly for `camerahalserver` (`MF@CapPipe`) crashes.
+- Audit both `System.loadLibrary` (`dexdump`) and `dlopen` strings (`strings`
+  for `\.so$` and `/vendor/`) against `proprietary-files.txt`: `TranssionCamera`
+  and `libmtkcam_3rdparty.customer.so` load `libanc_hdr.so` (`vendor/etc/anc_siq/*`),
+  `libcameracustom.plugin.so` (`libremosaic*`/`librmsclib1.so`), and
+  `libcommon.so` (`libXDocProcessSDK.so`) dynamically without `DT_NEEDED`.
+- Stock `libsdk_sr.so` has a 4-byte NEON tail over-read (`0x1c8c50: ldr d16, [x8]`)
+  that was harmless on Android 11 jemalloc but hits Scudo's guard page on
+  Android 15; fixed via `sig_replace` in `extract-files.py`.
+- Hybrid `vpud` (stock Android 11 `libvpud_vcodec.so`) + `fire` Android 14
+  `libcodec2_mtk_venc.so` breaks `MediaRecorder` (`StagefrightRecorder`) even
+  when `screenrecord` and `Aperture` (`MediaMuxer`) succeed: `AP_IPIMSG_ENC_SET_PARAM 15`
+  must return `0` (`0x12a2c`: `movs r7, #0`) and `u4TSVC` (`0x11b42`) must be
+  zeroed so `VPUD` does not inject a 9-byte `PrefixNALU` rejected by
+  `MPEG4Writer::parseAVCCodecSpecificData`.
 
 ## Commits
 

@@ -238,6 +238,15 @@ vendor/lib64/libbluetooth_audio_session_mediatek.so
 vendor/bin/hw/camerahalserver
 vendor/bin/jpegtool
 vendor/etc/init/camerahalserver.rc
+vendor/etc/anc_siq/cache_s5kjn1_17201711_back_g88
+vendor/etc/anc_siq/cache_s5kjn1_17201715_back_g88
+vendor/etc/anc_siq/dgain_mask_s5kjn1_17201711_back_g88.bin
+vendor/etc/anc_siq/dgain_mask_s5kjn1_17201715_back_g88.bin
+vendor/etc/anc_siq/siq_ocl_cache_s5kjn1_17201711_back_g88
+vendor/etc/anc_siq/siq_ocl_cache_s5kjn1_17201715_back_g88
+vendor/etc/anc_siq/superiq_model_s5kjn1_17201711_back_g88
+vendor/etc/anc_siq/superiq_model_s5kjn1_17201715_back_g88
+vendor/etc/tran_camprofiles.xml
 vendor/lib/hw/vendor.mediatek.hardware.camera.bgservice@1.1-impl.so
 vendor/lib/libDefaultFpsActor.so
 vendor/lib/libFrameRecord.so
@@ -283,6 +292,10 @@ vendor/lib64/libSonyIMX519PdafLibrary.so
 vendor/lib64/libSonyIMX519PdafLibraryWrapper.so
 vendor/lib64/lib_bsscore.so
 vendor/lib64/libacdk.so
+vendor/lib64/libanc_hdr.so
+vendor/lib64/libanc_hdr_adapter_s5kjn1_17201711_back_g88.so
+vendor/lib64/libanc_hdr_adapter_s5kjn1_17201715_back_g88.so
+vendor/lib64/libancbase.so
 vendor/lib64/libcam.feature_utils.so
 vendor/lib64/libcam.hal3a.cctsvr.so
 vendor/lib64/libcam.hal3a.log.so
@@ -318,6 +331,7 @@ vendor/lib64/libcamdrv_isp.so
 vendor/lib64/libcamdrv_tuning_mgr.so
 vendor/lib64/libcamdrv_twin.so
 vendor/lib64/libcameracustom.eis.so
+vendor/lib64/libcameracustom.plugin.so
 vendor/lib64/libcameracustom.so
 system_ext/lib64/libcvface_api.so
 vendor/lib64/libeffecthal.base.so
@@ -341,6 +355,9 @@ vendor/lib64/liblpcnr.so
 vendor/lib64/libmfllcore.so
 vendor/lib64/libmsnr.so
 vendor/lib64/libmtkisp_metadata.so
+vendor/lib64/libremosaic_wrapper.so
+vendor/lib64/libremosaiclib.so
+vendor/lib64/librmsclib1.so
 vendor/lib64/libstereoinfoaccessor_vsdof.so
 vendor/lib64/vendor.mediatek.hardware.camera.atms@1.0.so
 vendor/lib64/vendor.mediatek.hardware.camera.bgservice@1.0.so
@@ -471,11 +488,13 @@ vendor/lib64/s5kjn1_mipi_raw_tuning.so
 vendor/lib64/s5kjn1ext2_mipi_raw_tuning.so
 
 # Camera (Transsion)
-system_ext/app/TranssionCamera/TranssionCamera.apk;PRESIGNED
+system_ext/app/TranssionCamera/TranssionCamera.apk
 system_ext/lib64/libArcFilter.so
+system_ext/lib64/libXDocProcessSDK.so
 system_ext/lib64/libYTCommon.so
 system_ext/lib64/libarcsoft_frc.so
 system_ext/lib64/libCNamaSDK.so
+system_ext/lib64/libcommon.so
 system_ext/lib64/libjni_cvface_api.so
 system_ext/lib64/libjniarcsoft_frc.so
 system_ext/lib64/libjnimovedetect.so
