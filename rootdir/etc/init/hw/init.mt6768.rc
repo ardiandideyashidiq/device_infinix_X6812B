@@ -86,6 +86,9 @@ on charger
 
     start vendor.light-default
 
+on property:init.svc.vendor.charger=running
+    stop vendor.charger
+
 on property:sys.boot_completed=1
     write /proc/pl_lk "0"
 

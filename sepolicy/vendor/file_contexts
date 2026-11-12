@@ -23,10 +23,6 @@
 
 # NFC labels (device node, socket and -st service) come from
 # device/mediatek/sepolicy_vndr/base/vendor/file_contexts.
-
-# Health
-/(vendor|system\/vendor)/bin/hw/android\.hardware\.health@2\.1-service         u:object_r:hal_health_default_exec:s0
-
 # Power
 /vendor/bin/hw/android\.hardware\.power-service\.lineage-libperfmgr                    u:object_r:hal_power_default_exec:s0
 
