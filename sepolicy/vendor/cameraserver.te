@@ -2,4 +2,3 @@ allow cameraserver dmabuf_system_heap_device:chr_file { ioctl read getattr lock 
 allow cameraserver { sysfs_sub_torch_file sysfs_torch_file sysfs_wide_torch_file }:file rw_file_perms;
 
 get_prop(cameraserver, vendor_camera_prop)
-get_prop(cameraserver, vendor_default_prop)
