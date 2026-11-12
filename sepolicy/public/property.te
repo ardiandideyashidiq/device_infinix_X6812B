@@ -3,6 +3,3 @@ vendor_public_prop(vendor_camera_prop)
 
 # Fingerprint
 vendor_public_prop(vendor_fingerprint_prop)
-
-# Goodix fingerprint debug (non-vendor-prefixed, system-owned)
-system_public_prop(vendor_gf_debug_prop)

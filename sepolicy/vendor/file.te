@@ -5,7 +5,7 @@ type vendor_watermark_data_file, file_type, data_file_type, mlstrustedobject;
 type vendor_arcsoft_data_file, file_type, data_file_type, mlstrustedobject;
 type vendor_megvii_data_file, file_type, data_file_type, mlstrustedobject;
 # DT2W gesture
-type vendor_sysfs_gesture, fs_type, sysfs_type;
+# (proc_gesture_function / proc_gesture_state below)
 
 # Data
 type audio_vendor_data_file, file_type, data_file_type;
@@ -16,7 +16,6 @@ type vendor_fingerprint_data_file, data_file_type, file_type;
 type silead_fpd_device, dev_type;
 type silead_fpd_data_file, data_file_type, file_type;
 
-type vendor_sysfs_display, fs_type, sysfs_type;
 type vendor_sysfs_mali, fs_type, sysfs_type;
 
 # Gesture
