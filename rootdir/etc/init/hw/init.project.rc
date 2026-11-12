@@ -61,8 +61,4 @@ on init
 service fuse_usbotg /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw/usbotg /storage/usbotg
     class late_start
     disabled
-#SPD: modify for swap zram write-back by shuang.zhou at 20201020 start
-on property:sys.boot_completed=1
-    swapon_all /vendor/etc/memfusion2/fstab.enableswap
-#SPD: modify for swap zram write-back by shuang.zhou at 20201020 end
 

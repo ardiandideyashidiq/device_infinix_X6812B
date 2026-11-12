@@ -83,13 +83,6 @@ prebuilt_etc {
 }
 
 prebuilt_etc {
-    name: "init.ago.rc",
-    src: "etc/init/hw/init.ago.rc",
-    sub_dir: "init/hw",
-    vendor: true
-}
-
-prebuilt_etc {
     name: "init.insmod.cfg",
     src: "bin/init.insmod.cfg",
     vendor: true

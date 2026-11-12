@@ -319,7 +319,6 @@ PRODUCT_PACKAGES += \
     init.mt6768.power.rc \
     init.mt6768.usb.rc \
     init.project.rc \
-    init.ago.rc \
     init.sensor_1_0.rc \
     fstab.mt6768 \
     fstab.mt6768.first_stage_ramdisk \
