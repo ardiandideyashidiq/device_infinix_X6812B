@@ -45,8 +45,6 @@ lib_fixups: lib_fixups_user_type = {
 }
 
 blob_fixups: blob_fixups_user_type = {
-    'system_ext/app/TranssionCamera/TranssionCamera.apk': blob_fixup()
-        .apktool_patch('blob-patches/TranssionCamera'),
     'system/lib/libshowlogo.so': blob_fixup()
         .add_needed('libshim_showlogo.so'),
     'vendor/lib/hw/audio.primary.mt6768.so': blob_fixup()
