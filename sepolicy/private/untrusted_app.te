@@ -1,0 +1,1 @@
+allow untrusted_app_all proc_cl_cam_status:file r_file_perms;

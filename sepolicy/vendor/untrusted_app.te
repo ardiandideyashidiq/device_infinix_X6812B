@@ -1,4 +1,6 @@
 allow untrusted_app unlabeled:filesystem getattr;
+hal_client_domain(untrusted_app, hal_mtk_bgs)
+hal_client_domain(untrusted_app_29, hal_mtk_bgs)
 
 get_prop(untrusted_app_all, vendor_camera_prop)
 allow untrusted_app_all sysfs_tran_cam_file:file r_file_perms;
