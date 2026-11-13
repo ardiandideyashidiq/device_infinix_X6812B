@@ -465,6 +465,34 @@ Before removing a `.rc` line, sepolicy path, or blob:
   to Netfilter/iptables MASQUERADE. Verify with `dumpsys tethering`
   (`enableBpfOffload: false`).
 
+### USB and Ports
+
+- Kernel 4.14 uses `/sys/class/dual_role_usb/dual-role-usb20` (`musb-hdrc`), NOT
+  Linux Type-C connector class (`/sys/class/typec/`).
+- Do not use AIDL USB (`android.hardware.usb-service.mediatek`): it relies on
+  `/sys/class/typec/` and reports 0 ports on this kernel.
+- Use LineageOS's source-built `android.hardware.usb@1.3-service.dual_role_usb`.
+- Declare HIDL `android.hardware.usb@1.3` in `manifest.xml`. Do NOT declare
+  `android.hardware.usb.gadget` unless a gadget service is actually running;
+  declaring a missing `IUsbGadget` causes `UsbService` and `UsbPortManager` to
+  block and delay framework boot until watchdog timeouts.
+
+### Battery and Charging
+
+- Transsion/MediaTek kernel fuelgauge drivers (`fuelgauged`) report scaled-down
+  ticks in sysfs `charge_full_design` (e.g. `231000` instead of `5000000`).
+- The true battery design capacity is exported at `/sys/devices/platform/tran_battery/BATTERY_QMAX`
+  (`5000`). Label this node as `u:object_r:sysfs_batteryinfo:s0` in
+  `sepolicy/vendor/file_contexts` so `hal_health_default` can read it.
+- In `hardware/mediatek/aidl/health/Health.cpp`, override `UpdateHealthInfo()` to
+  read `BATTERY_QMAX` and populate `batteryFullChargeDesignCapacityUah = 5000000`.
+
+### Display & Refresh Rate
+
+- To expose the 90 Hz high refresh rate toggle in Settings -> Display, overlay
+  `<bool name="config_show_smooth_display">true</bool>` in `overlay/SettingsResTarget/res/values/config.xml`.
+- Verify availability with `cmd overlay dump com.android.settings.target`.
+
 ### Touch gestures / DT2W
 
 - Inspect driver wake keys in the kernel (`Image.gz` disassembly of
