@@ -47,6 +47,7 @@
     <!-- Whether the display cutout region should be forced to black. -->
     <bool name="config_fillMainBuiltInDisplayCutout">false</bool>
 
+    <integer name="config_defaultRefreshRate">0</integer>
     <!-- The default peak refresh rate. -->
     <integer name="config_defaultPeakRefreshRate">90</integer>
 
