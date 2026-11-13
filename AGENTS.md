@@ -201,6 +201,54 @@ prebuilts/clang/host/linux-x86/clang-r536225/bin/clang++ -c \
     -Isystem/unwindstack/include -Isystem/core/include -Isystem/libbase/include \
     -std=c++20 -fPIC -Wall -Werror && rm -f /tmp/shim.o
 ```
+
+### Live-test RRO overlays on device
+
+Test resource and overlay changes live on device without rebuilding:
+
+```bash
+python3 - <<'PY'
+import os, subprocess, tempfile, glob
+
+android_root = os.path.abspath('../../..')
+aapt2 = os.path.join(android_root, 'out/host/linux-x86/bin/aapt2')
+zipalign = os.path.join(android_root, 'out/host/linux-x86/bin/zipalign')
+apksigner = os.path.join(android_root, 'out/host/linux-x86/bin/apksigner')
+android_jar = os.path.join(android_root, 'prebuilts/sdk/35/public/android.jar')
+
+# 1. Target overlay directory (e.g. overlay/SettingsResTarget or overlay/TetheringConfigTarget)
+overlay_dir = os.path.abspath('overlay/SettingsResTarget')
+manifest = os.path.join(overlay_dir, 'AndroidManifest.xml')
+res_xmls = glob.glob(f"{overlay_dir}/res/**/*.xml", recursive=True)
+
+pem = os.path.join(android_root, 'build/make/target/product/security/platform.x509.pem')
+pk8 = os.path.join(android_root, 'build/make/target/product/security/platform.pk8')
+
+with tempfile.TemporaryDirectory() as tmpdir:
+    apk_unaligned = os.path.join(tmpdir, 'unaligned.apk')
+    apk_aligned = os.path.join(tmpdir, 'aligned.apk')
+    out_apk = '/tmp/test_overlay.apk'
+    
+    subprocess.run([aapt2, 'compile', '-o', tmpdir, '--pseudo-localize'] + res_xmls,
+                   check=True, cwd=android_root)
+    flats = glob.glob(f"{tmpdir}/*.flat")
+    subprocess.run([aapt2, 'link', '-o', apk_unaligned, '-I', android_jar, '--manifest', manifest] + flats,
+                   check=True, cwd=android_root)
+    subprocess.run([zipalign, '-f', '4', apk_unaligned, apk_aligned], check=True, cwd=android_root)
+    subprocess.run([apksigner, 'sign', '--key', pk8, '--cert', pem, '--out', out_apk, apk_aligned],
+                   check=True, cwd=android_root)
+    print("Built signed overlay at /tmp/test_overlay.apk")
+PY
+
+# 2. Find package path on device, push, and reload
+PKG="com.android.settings.target" # or com.android.networkstack.tethering.target
+DEST=$(adb shell "pm path $PKG" | cut -d: -f2 | tr -d '\r')
+adb push /tmp/test_overlay.apk "$DEST"
+adb shell "chmod 644 $DEST && stop && start"
+
+# 3. Verify idmap on device
+adb shell "cmd overlay dump $PKG"
+```
 ### What cannot be fixed without a build
 
 `stem`/`module name` collisions, duplicate install rules and AIDL version
