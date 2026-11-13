@@ -381,6 +381,21 @@ Before removing a `.rc` line, sepolicy path, or blob:
 - Stock MTK audio uses DTS processing (`libdtsaudio.so`, `mtk_bessound`). In
   AOSP, device effects with `EFFECT_FLAG_TYPE_POST_PROC` can be rejected on
   stream output sessions unless patched or given a software fallback.
+- If speaker media or game audio is disproportionately quiet at mid slider
+  (e.g. 50%), check `AUDIO_STREAM_MUSIC` `DEVICE_CATEGORY_SPEAKER` in
+  `configs/audio/audio_policy_volumes.xml`: AOSP's default curve applies
+  -20.8 dB attenuation at step 8 (~9% linear amplitude). Use a balanced
+  curve (`<point>1,-4500</point> <point>33,-2500</point> <point>66,-1100</point>`)
+  and ensure `ro.vendor.mtk_besloudness_support=1` in `vendor.prop` for DRC.
+
+### Wi-Fi Sharing / Tethering
+
+- On legacy 4.14 kernels without eBPF TC tethering packet forwarding support,
+  tethered clients will connect but receive no internet routing if BPF offload
+  is active. Set `<bool name="config_tether_enable_bpf_offload">false</bool>`
+  in `overlay/TetheringConfigTarget/res/values/config.xml` to force fallback
+  to Netfilter/iptables MASQUERADE. Verify with `dumpsys tethering`
+  (`enableBpfOffload: false`).
 
 ### Touch gestures / DT2W
 
