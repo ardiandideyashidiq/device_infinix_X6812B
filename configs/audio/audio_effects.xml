@@ -105,19 +105,4 @@
         </postprocess>
     -->
 
-    <postprocess>
-        <stream type="music">
-            <apply effect="dtsaudio"/>
-        </stream>
-        <stream type="ring">
-            <apply effect="dtsaudio"/>
-        </stream>
-        <stream type="alarm">
-            <apply effect="dtsaudio"/>
-        </stream>
-        <stream type="notification">
-            <apply effect="dtsaudio"/>
-        </stream>
-    </postprocess>
-
 </audio_effects_conf>
