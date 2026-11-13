@@ -383,6 +383,10 @@ $(call soong_config_set_bool,mediatek_vibrator,supports_effects,true)
 PRODUCT_PACKAGES += \
     android.hardware.vibrator-service.mediatek
 
+# USB
+PRODUCT_PACKAGES += \
+    android.hardware.usb@1.3-service.dual_role_usb
+
 # VNDK
 PRODUCT_PACKAGES += \
     libutils-v32 \
