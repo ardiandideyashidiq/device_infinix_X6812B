@@ -41,3 +41,6 @@
 
 # USB OTG
 /sys/devices/platform/(odm/odm:tran_battery|tran_battery)/OTG_CTL                     u:object_r:sysfs_OTG_CTL_file:s0
+
+# Battery QMAX
+/sys/devices/platform/(odm/odm:tran_battery|tran_battery)/BATTERY_QMAX            u:object_r:sysfs_batteryinfo:s0
