@@ -249,6 +249,26 @@ adb shell "chmod 644 $DEST && stop && start"
 # 3. Verify idmap on device
 adb shell "cmd overlay dump $PKG"
 ```
+
+### Compile and test individual binaries with Ninja (without a full build)
+
+When developing or testing a HAL binary (e.g. `android.hardware.health-service.mediatek`),
+you can compile ONLY that binary target using the prebuilt ninja without invoking a full ROM build:
+
+```bash
+# 1. Compile the single binary target
+../../../prebuilts/build-tools/linux-x86/bin/ninja -f ../../../out/combined-lineage_X6812B.ninja \
+  out/soong/.intermediates/hardware/mediatek/aidl/health/android.hardware.health-service.mediatek/android_vendor_arm64_armv8-2a-dotprod_cortex-a75/android.hardware.health-service.mediatek
+
+# 2. Push to live device and set permissions/SELinux context
+BIN="../../../out/soong/.intermediates/hardware/mediatek/aidl/health/android.hardware.health-service.mediatek/android_vendor_arm64_armv8-2a-dotprod_cortex-a75/android.hardware.health-service.mediatek"
+adb push "$BIN" /vendor/bin/hw/android.hardware.health-service.mediatek
+adb shell "chmod 755 /vendor/bin/hw/android.hardware.health-service.mediatek && chcon u:object_r:hal_health_default_exec:s0 /vendor/bin/hw/android.hardware.health-service.mediatek"
+
+# 3. Restart the service and inspect live status/dumpsys
+adb shell "killall -9 android.hardware.health-service.mediatek; sleep 1.5; pidof android.hardware.health-service.mediatek"
+adb shell "dumpsys battery"
+```
 ### What cannot be fixed without a build
 
 `stem`/`module name` collisions, duplicate install rules and AIDL version
