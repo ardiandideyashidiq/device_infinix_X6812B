@@ -27,9 +27,7 @@
     <!-- Wifi driver supports Automatic channel selection (ACS) for softap -->
     <bool name="config_wifi_softap_acs_supported">true</bool>
 
-    <!-- Wifi driver does not support WPA3-SAE for softap on this chipset.
-         Enabling it breaks WPA2/WPA3 transition mode networks. -->
-    <bool name="config_wifi_softap_sae_supported">false</bool>
+    <bool name="config_wifi_softap_sae_supported">true</bool>
 
     <!-- Do not reset max client setting configuration during cloud configuration restore -->
     <bool name="config_wifiSoftapResetMaxClientSettingConfig" translatable="false">false</bool>
