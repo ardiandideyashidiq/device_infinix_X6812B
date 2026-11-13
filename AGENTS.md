@@ -472,8 +472,10 @@ Before removing a `.rc` line, sepolicy path, or blob:
 - Do not use AIDL USB (`android.hardware.usb-service.mediatek`): it relies on
   `/sys/class/typec/` and reports 0 ports on this kernel.
 - Use LineageOS's source-built `android.hardware.usb@1.3-service.dual_role_usb`.
-- Declare HIDL `android.hardware.usb@1.3` in `manifest.xml`. Do NOT declare
-  `android.hardware.usb.gadget` unless a gadget service is actually running;
+- Do NOT declare `android.hardware.usb@1.3` in `manifest.xml`: the module
+  already installs its own VINTF fragment (`android.hardware.usb@1.3-service.dual_role_usb.xml`),
+  so a duplicate declaration fails `checkvintf` with conflicting FqInstance.
+- Do NOT declare `android.hardware.usb.gadget` unless a gadget service is actually running;
   declaring a missing `IUsbGadget` causes `UsbService` and `UsbPortManager` to
   block and delay framework boot until watchdog timeouts.
 
