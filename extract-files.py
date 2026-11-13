@@ -50,8 +50,6 @@ blob_fixups: blob_fixups_user_type = {
     'vendor/lib/hw/audio.primary.mt6768.so': blob_fixup()
         .add_needed('libshim_audio.so')
         .replace_needed('libalsautils.so', 'libalsautils-mtk.so'),
-    'vendor/etc/init/android.hardware.bluetooth@1.0-service-mediatek.rc': blob_fixup()
-        .regex_replace(r'on property:vts[\s\S]*', ''),
     'vendor/lib64/hw/android.hardware.camera.provider@2.6-impl-mediatek.so': blob_fixup()
         .add_needed('libcamera_metadata_shim.so'),
     (
