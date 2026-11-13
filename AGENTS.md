@@ -727,6 +727,86 @@ Before removing a `.rc` line, sepolicy path, or blob:
   (`/dev/stune/`). Watch for kernel ABI mismatches, e.g. a 4.14 kernel rejecting
   newer uclamp `sched_setattr` with `E2BIG`/`err=7`.
 
+#### Benchmarking
+
+Use a deterministic sequence, not gestures. `input swipe` opens or closes the
+shade depending on the state it is already in, so the frame count varies 4x
+between identical runs and no two numbers are comparable:
+
+```bash
+cmd statusbar collapse; sleep 0.5
+dumpsys gfxinfo com.android.systemui reset >/dev/null
+i=0; while [ $i -lt 4 ]; do
+  cmd statusbar expand-notifications; sleep 0.9
+  cmd statusbar collapse; sleep 0.9; i=$((i+1))
+done
+dumpsys gfxinfo com.android.systemui | grep -E "Total frames|Janky frames:|percentile"
+```
+
+"Achieved frame rate" needs `Total frames rendered` divided by the wall time of
+the sequence; the percentiles alone cannot distinguish 40 fps from 90 fps,
+because a consistently late surface gets a multi-vsync `FrameDeadline` and is
+then reported as *not* janky.
+
+Pitfalls that invalidate a measurement:
+
+- `debug.hwui.renderer` set with `setprop` **sticks for every process started
+  afterwards**. A bench run after a `skiavk` experiment measures Vulkan, not the
+  shipped default. Confirm the backend with
+  `dumpsys gfxinfo <pkg> | grep -m1 Pipeline` before trusting a number. The
+  shipped default is OpenGL (`ro.hwui.use_vulkan` is unset/empty).
+- Every line of the dump must come from the same process generation. Restarting
+  SystemUI resets the counters, so `reset` *after* the restart, wait ~8 s, wake
+  the device (`input keyevent KEYCODE_WAKEUP; wm dismiss-keyguard`), and check
+  that the first run is not `Total frames rendered: 0`.
+- `killall com.android.systemui` and `pidof com.android.systemui` can fail with
+  `Operation not permitted` / no output under APatch `su`; `kill -9 <pid>` with
+  the PID from `ps` works.
+- Killing the power HAL leaves `PowerManagerService` holding a dead binder
+  (`PowerHalController: setMode failed ... DEAD_OBJECT`). The first hint after
+  the reconnect can be dropped, so give it ~2 s and verify with
+  `dumpsys android.hardware.power.IPower/default` that the node's
+  `Current Index` matches the hint you expected.
+
+#### MTK CPU and GPU boost nodes
+
+`configs/powerhint.json` runs on `hal_power_default`, and only some MTK nodes
+actually do anything. Verified on device by triggering a hint and reading the
+node back:
+
+- `/sys/devices/system/cpu/cpufreq/policy*/scaling_min_freq` — **ignored**. PPM
+  owns the frequency floor: a LAUNCH hint asking for 1800000/2000000 leaves
+  `scaling_min_freq` at 500000/850000.
+- `scaling_max_freq` — works, but only caps. The old config capped the little
+  cluster to 1625000 on every touch, i.e. it downclocked the cluster that
+  scrolls the UI.
+- `/proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_{ta,fg,bg}_boost` (`-100..100`) and
+  `perfserv_{,ta_,fg_,bg_}uclamp_min` (`0..100`) — the sanctioned boost path,
+  same set the stock MTK HAL uses in `vendor/etc/powercontable.xml`. Writes from
+  `hal_power_default` take effect.
+- `/proc/perfmgr/boost_ctrl/cpu_ctrl/perfserv_freq` — `"<c0min> <c0max> <c1min>
+  <c1max>"`, `-1` leaves a value alone. This is the only node that moves the
+  reported min frequency, and it is not used by stock.
+- `/dev/stune/*/schedtune.prefer_idle` — **cannot** be written by the power HAL
+  (`Failed to write to node ... fd: -1`); only `schedtune.boost` is granted via
+  the `cgroup` label. The MTK equivalent is
+  `/proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_prefer_idle`, which is a
+  multi-line per-cgroup array, so do not feed it a single value.
+- Every node with `ResetOnInit` needs an explicit `DefaultIndex`. Without one
+  libperfmgr logs `Failed to read Node[N]'s DefaultIndex, set to last index` and
+  resets the node to its **last** value at HAL start — e.g. a permanent 10 %
+  `top-app` `schedtune.boost`.
+
+The stock dump's `vendor/etc/powercontable.xml` is the authoritative reference
+for a node's meaning and range (`MaxValue`/`MinValue`/`DefaultValue`).
+
+Current known bottleneck: the notification shade. Its frames take ~25-30 ms
+(`p50`) regardless of any power hint, SF phase offset or `hwc.min.duration`
+tried so far, and it is the only workload that stays janky. `dumpsys
+SurfaceFlinger` shows the wallpaper layer as `CLIENT`-composited while six layers
+are visible (HWC runs out of overlays), and the shade's own GPU stage is
+10-15 ms. Do not repeat the power-hint sweeps expecting to fix it.
+
 ### Camera & Media (`TranssionCamera` / Codec2)
 
 Debugging steps:
