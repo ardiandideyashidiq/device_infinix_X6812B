@@ -164,6 +164,64 @@ cp -f -d ../../../out/soong/.intermediates/system/libhidl/vintfdata/vendor_manif
 Step 2 catches conflicting FqInstances between `manifest.xml` and installed HAL
 fragments. Step 3 prints `COMPATIBLE` on success.
 
+### SELinux contexts (checkfc, check_prop_prefix)
+
+Validate context files against `precompiled_sepolicy` to catch invalid regex,
+undeclared types, or missing labels without building:
+
+```bash
+POLICY="../../../out/target/product/X6812B/vendor/etc/selinux/precompiled_sepolicy"
+
+# File contexts
+../../../out/host/linux-x86/bin/checkfc "$POLICY" sepolicy/vendor/file_contexts
+
+# Property contexts syntax & types
+../../../out/host/linux-x86/bin/checkfc -p "$POLICY" sepolicy/vendor/property_contexts
+
+# HW service contexts (HIDL)
+../../../out/host/linux-x86/bin/checkfc -l "$POLICY" sepolicy/vendor/hwservice_contexts
+
+# Service / vndservice contexts (AIDL / Binder)
+../../../out/host/linux-x86/bin/checkfc -s "$POLICY" sepolicy/vendor/service_contexts
+../../../out/host/linux-x86/bin/checkfc -v "$POLICY" sepolicy/vendor/vndservice_contexts
+
+# Verify vendor property Treble prefix compliance
+../../../out/host/linux-x86/bin/check_prop_prefix \
+  --property-contexts sepolicy/vendor/property_contexts \
+  --allowed-property-prefix vendor. ro.vendor. persist.vendor. \
+  --allowed-context-prefix vendor_ \
+  --strict
+```
+
+### Init scripts (host_init_verifier)
+
+Catch syntax errors, unrecognized options, illegal trigger lines, and undefined
+UID/GID permissions in `.rc` files (note: `ueventd*.rc` uses ueventd format, not init):
+
+```bash
+PASSWD="../../../system/core/libcutils/include/private/android_filesystem_config.h"
+for rc in rootdir/etc/init/hw/*.rc rootdir/etc/init.recovery.mt6768.rc; do
+  [ -f "$rc" ] && ../../../out/host/linux-x86/bin/host_init_verifier -p "$PASSWD" "$rc"
+done
+```
+
+### XML syntax and schemas (xmllint)
+
+Check XML well-formedness and validate configs against AOSP XSD schemas:
+
+```bash
+# Syntax check across configs
+../../../out/host/linux-x86/bin/xmllint --noout \
+  configs/audio/audio_policy_configuration.xml \
+  configs/media/media_codecs.xml \
+  configs/manifests/manifest.xml
+
+# Schema validation for media codecs
+../../../out/host/linux-x86/bin/xmllint --noout \
+  --schema ../../../frameworks/av/media/libstagefright/xmlparser/media_codecs.xsd \
+  configs/media/media_codecs.xml
+```
+
 ### prebuilt ELF dependencies
 
 `check_elf_file` validates that every `DT_NEEDED` of a prebuilt resolves to a
@@ -237,6 +295,15 @@ prebuilts/clang/host/linux-x86/clang-r536225/bin/clang++ -c \
     -target aarch64-linux-android10000 \
     -Isystem/unwindstack/include -Isystem/core/include -Isystem/libbase/include \
     -std=c++20 -fPIC -Wall -Werror && rm -f /tmp/shim.o
+```
+
+#### 3. Blueprint formatting (`bpfmt`)
+```bash
+# Check formatting without writing (exit 0 if clean)
+find . -name Android.bp -exec ../../../prebuilts/build-tools/linux-x86/bin/bpfmt -d {} +
+
+# Auto-format in place
+find . -name Android.bp -exec ../../../prebuilts/build-tools/linux-x86/bin/bpfmt -w {} +
 ```
 
 ### Live-test RRO overlays on device
