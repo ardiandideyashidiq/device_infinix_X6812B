@@ -32,12 +32,9 @@ These are not negotiable. Breaking them has caused real damage.
 1. **Never run a build.** Ask the user to build and report `out/error.log`.
 2. **Never propose "rebuild the kernel" as a fix.** There is no kernel source for
    this device. `device/infinix/X6812B-kernel` holds only a prebuilt `Image.gz`,
-   DTB and headers, and the 4.14.186 tree is not public. Anything gated on a
-   kernel config option or driver that is missing is a hard limit, not a TODO —
-   say so and stop, do not suggest enabling it. Two live examples: USB OTG (no
-   `CONFIG_USB_XHCI_HCD`/`_EHCI_HCD`/`_OHCI_HCD`, so no host controller) and
-   configfs MTP (no `CONFIG_USB_F_MTP`). Work around the limit in userspace or
-   with the vendor HAL instead.
+   DTB and headers, and the 4.14.186 tree is not public. Do not answer a missing
+   kernel config option or driver with "rebuild the kernel with CONFIG_X" — it is
+   not an available action. Find a userspace or HAL-level solution instead.
 3. **Never run `grep`/`rg` at `$ANDROID_ROOT` or on `out/`.** Scope every search
    to a specific directory:
    ```bash
@@ -601,14 +598,6 @@ Before removing a `.rc` line, sepolicy path, or blob:
   under `out/target/product/X6812B/vendor/etc/vintf/manifest/` before running
   `checkvintf --check-one` — a leftover of the other version conflicts as
   duplicate FqInstance.
-- **Host mode (OTG) is impossible on this kernel, not unimplemented.** Writing
-  `1` to `/sys/devices/platform/tran_battery/OTG_CTL` only enables the RT9471
-  boost; the data side never leaves device role. `/proc/config.gz` has
-  `CONFIG_USB_XHCI_HCD`, `CONFIG_USB_EHCI_HCD` and `CONFIG_USB_OHCI_HCD` all
-  unset, `CONFIG_USB_MUSB_HDRC` unset, `CONFIG_EXTCON_MTK_USB` unset
-  (`/sys/class/extcon/` is empty), and `dual-role-usb20/mode` is `r--r--r--`.
-  `dmesg` shows `prop=1, power=1, is_host=0` after the write. Do not chase this
-  or propose a kernel rebuild — see Hard rule 2.
 
 ### Battery and Charging
 
