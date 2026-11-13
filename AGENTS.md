@@ -323,25 +323,30 @@ android_root = os.path.abspath('../../..')
 aapt2 = os.path.join(android_root, 'out/host/linux-x86/bin/aapt2')
 zipalign = os.path.join(android_root, 'out/host/linux-x86/bin/zipalign')
 apksigner = os.path.join(android_root, 'out/host/linux-x86/bin/apksigner')
-android_jar = os.path.join(android_root, 'prebuilts/sdk/35/public/android.jar')
+framework_res = os.path.join(android_root, 'out/target/product/X6812B/system/framework/framework-res.apk')
 
-# 1. Target overlay directory (e.g. overlay/SettingsResTarget or overlay/TetheringConfigTarget)
-overlay_dir = os.path.abspath('overlay/SettingsResTarget')
+# 1. Target overlay directory (e.g. overlay/SettingsResTarget or overlay/FrameworksResTarget)
+overlay_dir = os.path.abspath('overlay/FrameworksResTarget')
 manifest = os.path.join(overlay_dir, 'AndroidManifest.xml')
 res_xmls = glob.glob(f"{overlay_dir}/res/**/*.xml", recursive=True)
 
-pem = os.path.join(android_root, 'build/make/target/product/security/platform.x509.pem')
-pk8 = os.path.join(android_root, 'build/make/target/product/security/platform.pk8')
+pem = os.path.join(android_root, 'vendor/lineage-priv/keys/releasekey.x509.pem')
+pk8 = os.path.join(android_root, 'vendor/lineage-priv/keys/releasekey.pk8')
 
 with tempfile.TemporaryDirectory() as tmpdir:
     apk_unaligned = os.path.join(tmpdir, 'unaligned.apk')
     apk_aligned = os.path.join(tmpdir, 'aligned.apk')
     out_apk = '/tmp/test_overlay.apk'
-    
+
     subprocess.run([aapt2, 'compile', '-o', tmpdir, '--pseudo-localize'] + res_xmls,
                    check=True, cwd=android_root)
     flats = glob.glob(f"{tmpdir}/*.flat")
-    subprocess.run([aapt2, 'link', '-o', apk_unaligned, '-I', android_jar, '--manifest', manifest] + flats,
+    # Link against framework-res.apk for internal framework attrs/resources;
+    # for APEX targets (WifiResTarget, TetheringConfigTarget), also pass
+    # -I /tmp/ServiceWifiResources.apk or /tmp/TetheringNext.apk pulled from /apex/.
+    subprocess.run([aapt2, 'link', '-o', apk_unaligned, '-I', framework_res,
+                    '--manifest', manifest, '--min-sdk-version', '35',
+                    '--target-sdk-version', '35', '--keep-raw-values'] + flats,
                    check=True, cwd=android_root)
     subprocess.run([zipalign, '-f', '4', apk_unaligned, apk_aligned], check=True, cwd=android_root)
     subprocess.run([apksigner, 'sign', '--key', pk8, '--cert', pem, '--out', out_apk, apk_aligned],
@@ -349,15 +354,21 @@ with tempfile.TemporaryDirectory() as tmpdir:
     print("Built signed overlay at /tmp/test_overlay.apk")
 PY
 
-# 2. Find package path on device, push, and reload
-PKG="com.android.settings.target" # or com.android.networkstack.tethering.target
-DEST=$(adb shell "pm path $PKG" | cut -d: -f2 | tr -d '\r')
-adb push /tmp/test_overlay.apk "$DEST"
-adb shell "chmod 644 $DEST && stop && start"
+# 2. When /vendor is mounted ro (no remount), push to /data/local/tmp and bind-mount
+DEST="/vendor/overlay/FrameworksResTarget.apk"
+adb push /tmp/test_overlay.apk /data/local/tmp/test_overlay.apk
+adb shell "su -c 'chmod 644 /data/local/tmp/test_overlay.apk && chcon u:object_r:vendor_overlay_file:s0 /data/local/tmp/test_overlay.apk && mount -o bind /data/local/tmp/test_overlay.apk $DEST && stop && start'"
+
+# To revert a bind-mounted overlay cleanly (plain umount fails with EBUSY while system_server holds it):
+adb shell "su -c 'umount -l $DEST && rm -f /data/local/tmp/test_overlay.apk && stop && start'"
 
 # 3. Verify idmap on device
-adb shell "cmd overlay dump $PKG"
+adb shell "cmd overlay dump android.overlay.target"
 ```
+
+- **Live-test `ro.*` props without a full reboot**: use APatch's
+  `/data/adb/ap/bin/resetprop` (e.g. `resetprop -d <prop>` or `resetprop <prop> <val>`),
+  then restart the consuming native daemon plus Zygote (`stop surfaceflinger && start surfaceflinger && stop && start`).
 
 ### Compile and test individual binaries with Ninja (without a full build)
 
@@ -573,6 +584,34 @@ Before removing a `.rc` line, sepolicy path, or blob:
   in `overlay/TetheringConfigTarget/res/values/config.xml` to force fallback
   to Netfilter/iptables MASQUERADE. Verify with `dumpsys tethering`
   (`enableBpfOffload: false`).
+- **Hotspot WPA2/WPA3 (`SECURITY_TYPE_WPA3_SAE_TRANSITION`) failures**:
+  - Check `dumpsys wifi | grep -E "SupportedFeatures=|config_wifi_softap_sae_supported"`
+    and reproduce cleanly from shell with
+    `cmd wifi start-softap "TestAP" wpa3_transition "12345678"` (and `cmd wifi stop-softap`).
+  - If `config_wifi_softap_sae_supported` is `false` in `WifiResTarget`,
+    `SoftApCapability` omits `SOFTAP_FEATURE_WPA3_SAE` (`SupportedFeatures=43`
+    instead of `47`). Settings' Android 14/15 `WifiHotspotSecuritySettings` still
+    lets users select WPA2/WPA3 (`SecurityType=2` in
+    `/data/misc/apexdata/com.android.wifi/WifiConfigStoreSoftAp.xml`), which
+    `ApConfigUtil` then rejects with `Error, SAE requires HAL support`
+    (`SoftApState mFailureReason=2`). `wlan_drv_gen4m.ko` and AIDL `hostapd`
+    support both `wpa3_transition` and `wpa3` when `config_wifi_softap_sae_supported`
+    is `true`.
+- **Client connects & gets DHCP IP but has no internet (DNS failure)**:
+  - Verify `dnsmasq` and port 53/67 listeners while hotspot is active:
+    `ps -eZ | grep dnsmasq`, `ss -tulnp | grep -E ":53|:67"`, and
+    `dumpsys netd | grep -iE "dnsmasq|tetherStart|tetherDns"`.
+  - `NetworkStack` `DhcpServer` (`IpServer.java`) advertises the downstream
+    `ap0` IP as the client DNS server. `netd` (`TetherController.cpp`) only
+    launches `dnsmasq` with port-53 DNS forwarding when `usingLegacyDnsProxy=true`
+    in `Tethering.java` (maintained via `fuck-bpf` patch
+    `packages/modules/Connectivity/0022-Tethering-restore-legacy-DNS-proxy-for-dnsmasq.patch`
+    reverting `0019`).
+  - Do **not** set `config_tether_enable_legacy_dhcp_server=true` in
+    `TetheringConfigTarget` as a workaround: when `usingLegacyDnsProxy=false`,
+    `TetherController` still passes `--port=0` (`DNS disabled`), and `dnsmasq`'s
+    `192.168.42–47.x` ranges do not match `IpServer`'s randomized `ap0` subnet,
+    breaking DHCP lease assignment too.
 
 ### USB and Ports
 
@@ -614,6 +653,23 @@ Before removing a `.rc` line, sepolicy path, or blob:
 - To expose the 90 Hz high refresh rate toggle in Settings -> Display, overlay
   `<bool name="config_show_smooth_display">true</bool>` in `overlay/SettingsResTarget/res/values/config.xml`.
 - Verify availability with `cmd overlay dump com.android.settings.target`.
+- To keep 90 Hz active without `min_refresh_rate=90`, BOTH are required:
+  1. `<integer name="config_defaultRefreshRate">0</integer>` in
+     `overlay/FrameworksResTarget/res/values/config.xml` (leaving it at AOSP's
+     default `60` causes `PRIORITY_DEFAULT_RENDER_FRAME_RATE` to vote
+     `RenderVote(0, 60)` and cap `primaryRanges` render rate to `60 Hz`).
+  2. Do **not** set `ro.surface_flinger.enable_frame_rate_override=false` in
+     `configs/props/vendor.prop`: when `false`, `VoteSummary` and
+     `RefreshRateSelector` discard physical modes outside the `render` range and
+     `Scheduler` sets `defaultTouchTimerValue=0`.
+- Verify live state and isolate framework voting from HWC mode switching:
+  ```bash
+  dumpsys display | grep -E "mActiveMode|mActiveRenderFrameRate|mDesiredDisplayModeSpecs|PRIORITY_"
+  dumpsys SurfaceFlinger | grep -E "renderRate=|activeMode=|displayManagerPolicy=|frameRateOverrideConfig="
+  # Force 90 Hz bypassing PRIORITY_DEFAULT_REFRESH_RATE (revert with delete afterwards):
+  settings put system min_refresh_rate 90
+  settings delete system min_refresh_rate
+  ```
 
 ### Touch gestures / DT2W
 
