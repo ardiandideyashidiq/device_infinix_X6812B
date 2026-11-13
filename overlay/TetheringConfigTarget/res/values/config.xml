@@ -28,4 +28,5 @@
         <item>192.168.47.2</item>
         <item>192.168.47.254</item>
     </string-array>
+    <bool translatable="false" name="config_tether_enable_bpf_offload">false</bool>
 </resources>
