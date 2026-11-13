@@ -31,3 +31,7 @@ PRODUCT_BUILD_PROP_OVERRIDES += \
 
 # Time
 LINEAGE_VERSION_APPEND_TIME_OF_DAY := true
+
+$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)
+
+WITH_GMS := true
