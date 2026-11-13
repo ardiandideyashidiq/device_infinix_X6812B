@@ -801,11 +801,58 @@ The stock dump's `vendor/etc/powercontable.xml` is the authoritative reference
 for a node's meaning and range (`MaxValue`/`MinValue`/`DefaultValue`).
 
 Current known bottleneck: the notification shade. Its frames take ~25-30 ms
-(`p50`) regardless of any power hint, SF phase offset or `hwc.min.duration`
-tried so far, and it is the only workload that stays janky. `dumpsys
-SurfaceFlinger` shows the wallpaper layer as `CLIENT`-composited while six layers
-are visible (HWC runs out of overlays), and the shade's own GPU stage is
-10-15 ms. Do not repeat the power-hint sweeps expecting to fix it.
+(`p50`) regardless of any power hint or `hwc.min.duration` tried so far.
+`dumpsys SurfaceFlinger` shows the wallpaper layer as `CLIENT`-composited while
+six layers are visible (HWC runs out of overlays), and the shade's own GPU stage
+is 10-15 ms, but the layer count is not the cause: over an opaque app there are
+0 CLIENT layers and the GPU stage is unchanged.
+
+#### SurfaceFlinger phase offsets
+
+These are the highest-leverage frame-pacing knob, and the tree had them
+inverted. `PhaseOffsets::constructOffsets` in `VsyncConfiguration.cpp`
+converts an offset to a duration as:
+
+    sfWorkDuration  = vsyncDuration - sfOffset
+    appWorkDuration = vsyncDuration + (sfOffset - appOffset)
+
+So a **negative** `sfOffset` makes `sfWorkDuration > vsyncDuration`, i.e. SF is
+given a whole extra frame, and shrinks the app's budget to compensate. The old
+tree values at 90 Hz (vsync 11111111 ns) produced `sfWorkDuration` 16.0 ms and
+`appWorkDuration` 16.0 ms. AOSP's 90 Hz shape is `sf=+1000000`,
+`app=+2000000`, giving 10.1 ms / 21.2 ms - one vsync each, app one frame ahead.
+RenderEngine averages 8.5 ms here, so SF needs ~10 ms and the 10.1 ms budget is
+the correct one. Verify with
+`dumpsys SurfaceFlinger | grep -E "app phase|SF phase|duration:"` after a
+restart; it prints the derived durations directly.
+
+Measure these only with `setprop ctl.restart surfaceflinger` plus a ~180 s
+settle. Without the settle the first sample is 10-20 points worse and looks
+like a regression. `kill -9` on SF is not enough: the props are read at startup,
+so the restart has to go through init.
+
+Variants measured, 2 runs each, janky % (shade / launcher / Settings):
+
+    sf=-4888889 app=1333333   (old)   13.01 10.02 / 6.72 5.83 / 22.33 20.39
+    sf=-6666666 app=1333333           12.76  9.83 / 7.20 6.72 / 20.95 16.98
+    sf=       0 app=2000000           10.41  8.10 / 5.46 5.93 / 16.82 20.00
+    sf= 1000000 app=2000000   (now)   10.97  8.23 / 4.66 6.33 / 14.02 20.00
+
+`debug.sf.hwc.min.duration` was re-tested after the offsets were fixed and is a
+wash between 3 ms and 5 ms (shade 10.36/6.97 vs 10.97/8.23). It stays at 5 ms
+because there is no gain to buy by changing it.
+
+`debug.hwui.use_hint_manager` and `debug.sf.enable_adpf_cpu_hint` do have an
+effect, but the trade is not worth taking: interleaved A/B over 3 rounds shows
+the HWUI hint manager winning the shade 3/3 (7.25/7.35/7.97 % vs
+8.27/7.77/8.11 %) while losing the launcher 3/3 (6.11/6.67/6.84 % vs
+5.70/6.58/6.49 %). `true` also needs `target_cpu_time_percent` near the AOSP
+default of 70; the tree's 30 is too low.
+
+After all of the above the remaining jank is app-bound, not config-bound: a
+Perfetto trace of the transitions shows Settings' main thread `traversal`
+averaging 8.1 ms (max 92 ms) on an AOT-`speed` app with uclamp pinned to max,
+and 62 of 67 shade-expansion frames landing on an exact 11 ms cadence.
 
 ### Camera & Media (`TranssionCamera` / Codec2)
 
