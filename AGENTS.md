@@ -575,13 +575,24 @@ Before removing a `.rc` line, sepolicy path, or blob:
   Linux Type-C connector class (`/sys/class/typec/`).
 - Do not use AIDL USB (`android.hardware.usb-service.mediatek`): it relies on
   `/sys/class/typec/` and reports 0 ports on this kernel.
-- Use LineageOS's source-built `android.hardware.usb@1.3-service.dual_role_usb`.
-- Do NOT declare `android.hardware.usb@1.3` in `manifest.xml`: the module
-  already installs its own VINTF fragment (`android.hardware.usb@1.3-service.dual_role_usb.xml`),
-  so a duplicate declaration fails `checkvintf` with conflicting FqInstance.
-- Do NOT declare `android.hardware.usb.gadget` unless a gadget service is actually running;
-  declaring a missing `IUsbGadget` causes `UsbService` and `UsbPortManager` to
-  block and delay framework boot until watchdog timeouts.
+- Use the prebuilt `android.hardware.usb@1.1-service-mediatek`. MTP needs it:
+  AOSP's `MtpServer` is FunctionFS-based and opens `/dev/usb-ffs/mtp/ep0`
+  (`frameworks/av/media/mtp/MtpDescriptors.h`). This kernel has no
+  `CONFIG_USB_F_MTP`, so configfs `mtp.gs0` is a stub and
+  `usb_get_function name=mtp` never resolves. MTK implements MTP through the
+  legacy `android_usb` gadget (`/dev/mtp_usb`), which only the vendor HAL
+  drives. With `dual_role_usb`, `MtpService` logs `Couldn't get control FD!`.
+  The prebuilt needs these in `device.mk` because the gadget libs are
+  otherwise only pulled in by other services:
+  `android.hardware.usb.gadget@1.0`, `@1.1`, `android.hardware.usb@1.0`, `@1.1`.
+- Declare `@1.1::IUsb/default` and `@1.1::IUsbGadget/default` in `manifest.xml`.
+  The prebuilt installs no VINTF fragment of its own, unlike `dual_role_usb`.
+- `device/mediatek/sepolicy_vndr` `base/vendor/file_contexts` already labels
+  `android\.hardware\.usb@1\.[0-9]+-service-mediatek` as `mtk_hal_usb_exec`.
+- After switching HALs, delete any stale `android.hardware.usb@*` fragment left
+  under `out/target/product/X6812B/vendor/etc/vintf/manifest/` before running
+  `checkvintf --check-one` — a leftover of the other version conflicts as
+  duplicate FqInstance.
 
 ### Battery and Charging
 
