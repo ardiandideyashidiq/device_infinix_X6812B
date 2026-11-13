@@ -836,7 +836,32 @@ Variants measured, 2 runs each, janky % (shade / launcher / Settings):
     sf=-4888889 app=1333333   (old)   13.01 10.02 / 6.72 5.83 / 22.33 20.39
     sf=-6666666 app=1333333           12.76  9.83 / 7.20 6.72 / 20.95 16.98
     sf=       0 app=2000000           10.41  8.10 / 5.46 5.93 / 16.82 20.00
-    sf= 1000000 app=2000000   (now)   10.97  8.23 / 4.66 6.33 / 14.02 20.00
+    sf= 1000000 app=2000000   (now)   10.97  8.23 / 5.15 5.51 / 14.02 20.00
+
+`appOffset` was then swept against the winning `sf=1000000` (Settings is the
+worst workload, and `appWorkDuration` is what governs it). None of 1500000,
+2500000 or 3000000 beat 2000000; 2500000 and 3000000 are clearly worse:
+
+    app=1500000   9.61  7.95 / 5.13 6.99 / 17.14 15.45
+    app=2000000  10.85  7.52 / 5.44 5.56 / 17.76 18.35   (kept)
+    app=2500000  11.29  8.23 / 5.93 6.49 / 21.15 16.36
+    app=3000000  11.95  8.87 / 5.51 7.89 / 16.67 19.44
+
+`debug.sf.enable_gl_backpressure` must stay `0`. The tree's value is not the
+AOSP default (`true`) and turning it on is a large regression, not a tuning
+knob: launcher 23.08/19.49 % with `sfLongGpuJankyFrames` 472 in the timestats
+run, versus 5.44/5.56 % with it off. The trace does report
+`appBufferStuffingJankyFrames` in the hundreds either way, so buffer stuffing
+is a symptom of the shade's pacing, not something backpressure can remove.
+
+For the Settings workload, `pm compile -m speed-profile` beats `-m speed`:
+interleaved over 3 rounds it wins 3/3 (15.60/14.55/15.89 % vs
+16.04/17.92/14.95 %) and the shade is a wash. That is also what the tree asks
+for - `pm.dexopt.install=speed-profile` and `pm.dexopt.bg-dexopt=speed-profile`
+in `configs/props/system.prop`. A device left in `speed` by a manual
+`pm compile` will read a couple of points worse than the shipped state, so
+check `dumpsys package com.android.settings | grep -A3 "Dexopt state"` before
+trusting a Settings number.
 
 `debug.sf.hwc.min.duration` was re-tested after the offsets were fixed and is a
 wash between 3 ms and 5 ms (shade 10.36/6.97 vs 10.97/8.23). It stays at 5 ms
