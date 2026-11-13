@@ -127,6 +127,43 @@ Gotchas:
 - The `.conf` files go stale. After editing any `.te` you **must** re-run `m4`
   or you are validating the old policy.
 
+### VINTF manifest and matrix (checkvintf / assemble_vintf)
+
+Validate device manifest changes, fragment conflicts (duplicate FqInstances),
+and framework compatibility matrix (FCM) requirements without a build:
+
+```bash
+# 1. Re-assemble vendor manifest and update staging target
+BOARD_SEPOLICY_VERS="202404" PRODUCT_ENFORCE_VINTF_MANIFEST=true \
+  ../../../out/host/linux-x86/bin/assemble_vintf \
+  -i configs/manifests/manifest.xml \
+  -o ../../../out/soong/.intermediates/system/libhidl/vintfdata/vendor_manifest.xml/android_arm64_armv8-2a-dotprod_cortex-a75/manifest.xml
+
+cp -f -d ../../../out/soong/.intermediates/system/libhidl/vintfdata/vendor_manifest.xml/android_arm64_armv8-2a-dotprod_cortex-a75/manifest.xml \
+  ../../../out/target/product/X6812B/vendor/etc/vintf/manifest.xml
+
+# 2. Check vendor manifest against fragments in /vendor/etc/vintf/manifest/
+../../../out/host/linux-x86/bin/checkvintf --check-one \
+  --dirmap /vendor:../../../out/target/product/X6812B/vendor \
+  --dirmap /apex:../../../out/target/product/X6812B/obj/PACKAGING/check_vintf_all_intermediates/apex \
+  --property ro.boot.product.vendor.sku=
+
+# 3. Check full framework/device compatibility matrix
+../../../out/host/linux-x86/bin/checkvintf --check-compat \
+  --dirmap /system:../../../out/target/product/X6812B/system \
+  --dirmap /vendor:../../../out/target/product/X6812B/vendor \
+  --dirmap /odm:../../../out/target/product/X6812B/vendor/odm \
+  --dirmap /product:../../../out/target/product/X6812B/product \
+  --dirmap /system_ext:../../../out/target/product/X6812B/system_ext \
+  --dirmap /apex:../../../out/target/product/X6812B/obj/PACKAGING/check_vintf_all_intermediates/apex \
+  --property ro.product.first_api_level=30 \
+  --property ro.boot.product.hardware.sku= \
+  --property ro.boot.product.vendor.sku=
+```
+
+Step 2 catches conflicting FqInstances between `manifest.xml` and installed HAL
+fragments. Step 3 prints `COMPATIBLE` on success.
+
 ### prebuilt ELF dependencies
 
 `check_elf_file` validates that every `DT_NEEDED` of a prebuilt resolves to a
