@@ -385,7 +385,10 @@ PRODUCT_PACKAGES += \
 
 # USB
 PRODUCT_PACKAGES += \
-    android.hardware.usb@1.3-service.dual_role_usb
+    android.hardware.usb.gadget@1.0 \
+    android.hardware.usb.gadget@1.1 \
+    android.hardware.usb@1.0 \
+    android.hardware.usb@1.1
 
 # VNDK
 PRODUCT_PACKAGES += \
