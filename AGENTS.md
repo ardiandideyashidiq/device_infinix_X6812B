@@ -924,12 +924,11 @@ Debugging steps:
 
 ## Commits
 
-- Prefix device commits with `X6812B: `.
-- Put all reasoning in the commit message: what the symptom was, the exact error
-  text, what you verified, and why the chosen fix is correct. Do not add
-  explanatory comments to the files themselves.
-- State what you verified versus what you assumed. If a claim rests on an
-  observation, include the command or output that proved it.
+- Commit message structure:
+  1. Subject line: `<codename>: <summary>` (e.g. `X6812B: wifi: enable WPA3-SAE softap support`).
+  2. Log snippet: verbatim error, logcat trace, or failing command output showing the bug/repro.
+  3. Explanation: root cause, what was verified on hardware vs assumed, and why the chosen fix is correct.
+- No explanatory comments in code/config files; put all reasoning in the commit message.
 
 ## Maintaining this file
 
