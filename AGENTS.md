@@ -715,6 +715,14 @@ Before removing a `.rc` line, sepolicy path, or blob:
      `ui::DisplayMode*` (stack corruption, 4-byte offset shift); copy
      `resolution`, `dpi`, `refreshRate` explicitly.
 
+### Sensors
+
+- On Infinix X6812B, the magnetometer is MEMSIC `mmc5603_x6812` and the accelerometer is Silan `sc7a20`.
+- The device has no discrete hardware gyroscope chip; MediaTek implements virtual gyroscope (`getVirtualGyro`) and sensor fusion (Orientation, Game Rotation Vector, Geomagnetic Rotation Vector, Rotation Vector, Gravity, Linear Acceleration) inside `sensors.mt6768.so` (`VendorInterface`).
+- At startup, `sensors.mt6768.so` reads `/sys/class/sensor/m_mag_misc/maglibinfo` (`mmc5603_x6812`) and dynamically executes `dlopen("libmmc5603_x6812.so", 2)` to load MEMSIC's sensor fusion library.
+- If `vendor/lib64/libmmc5603_x6812.so` is missing from `proprietary-files.txt`, `VendorInterface` logs `get lib_interface fail dlopen operation`. As a consequence, Magnetometer, Gyroscope, Orientation, and all 6 fusion sensors return all zeros (`0.00, 0.00, 0.00`) and appear completely dead in apps like DevCheck.
+- Keep both `vendor/lib/libmmc5603_x6812.so` and `vendor/lib64/libmmc5603_x6812.so` in `proprietary-files.txt` under `# Sensors`.
+
 ### UI jank and power
 
 - Jank: check both 60 Hz and 90 Hz; `dumpsys SurfaceFlinger` (HWC/GPU missed
