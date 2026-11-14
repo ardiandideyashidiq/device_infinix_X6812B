@@ -272,6 +272,31 @@ PY
 Do **not** compare only within one directory — most dependencies legitimately
 come from `/system` or the vendor tree, so a same-directory scan produces a long
 list of false positives.
+### Standalone vendor tree SONAME audit
+
+Validate all `.so` binaries in `vendor/infinix/X6812B/` for `DT_SONAME != filename`
+mismatches without a build (which trigger Soong `check_elf_files` failures):
+
+```bash
+python3 - <<'PY'
+import os, glob, subprocess
+
+vendor_dir = "vendor/infinix/X6812B/proprietary/vendor"
+for f in glob.glob(f"{vendor_dir}/**/*.so", recursive=True):
+    fname = os.path.basename(f)
+    out = subprocess.run(["readelf", "-d", f], capture_output=True, text=True).stdout
+    for line in out.splitlines():
+        if "SONAME" in line:
+            soname = line.split("[")[1].split("]")[0]
+            if soname != fname:
+                print(f"SONAME mismatch: {fname} (SONAME: {soname}) in {f}")
+PY
+```
+
+When a mismatch is identified on a prebuilt that is dynamically loaded via `dlopen`
+(e.g. `libmmc5603_x6812.so` having `DT_SONAME "libmemsic.so"`), append `;DISABLE_CHECKELF`
+to its line in `proprietary-files.txt` and re-run `./extract-files.py`.
+
 
 ### Test compile without Soong
 
