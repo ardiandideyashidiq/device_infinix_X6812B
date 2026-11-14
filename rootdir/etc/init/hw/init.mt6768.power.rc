@@ -17,6 +17,12 @@ on post-fs-data
     chmod 0660 /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_ta_uclamp_min
     chown system system /proc/perfmgr/boost_ctrl/dram_ctrl/ddr
     chmod 0660 /proc/perfmgr/boost_ctrl/dram_ctrl/ddr
+    chown system system /proc/perfmgr/boost_ctrl/cpu_ctrl/perfserv_freq
+    chmod 0660 /proc/perfmgr/boost_ctrl/cpu_ctrl/perfserv_freq
+    chown system system /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_ta_boost
+    chmod 0660 /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_ta_boost
+    chown system system /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_fg_boost
+    chmod 0660 /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_fg_boost
 
     chown system system /sys/kernel/ged/hal/gpu_boost_level
     chmod 0660 /sys/kernel/ged/hal/gpu_boost_level

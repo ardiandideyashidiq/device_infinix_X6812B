@@ -246,6 +246,16 @@
       ],
       "DefaultIndex": 0,
       "ResetOnInit": true
+    },
+    {
+      "Name": "PerfservFreq",
+      "Path": "/proc/perfmgr/boost_ctrl/cpu_ctrl/perfserv_freq",
+      "Values": [
+        "-1 -1 -1 -1",
+        "1800000 -1 2000000 -1"
+      ],
+      "DefaultIndex": 0,
+      "ResetOnInit": true
     }
   ],
   "Actions": [
@@ -334,6 +344,12 @@
       "Value": "40"
     },
     {
+      "PowerHint": "INTERACTION",
+      "Node": "PerfservFreq",
+      "Duration": 0,
+      "Value": "1800000 -1 2000000 -1"
+    },
+    {
       "PowerHint": "LAUNCH",
       "Node": "TAUclampMin",
       "Duration": 3000,
@@ -362,6 +378,12 @@
       "Node": "FGSchedtuneBoost",
       "Duration": 3000,
       "Value": "40"
+    },
+    {
+      "PowerHint": "LAUNCH",
+      "Node": "PerfservFreq",
+      "Duration": 3000,
+      "Value": "1800000 -1 2000000 -1"
     },
     {
       "PowerHint": "EXPENSIVE_RENDERING",
