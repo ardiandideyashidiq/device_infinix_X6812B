@@ -19,8 +19,11 @@ dalvik.vm.dexopt.secondary=true
 persist.bg.dexopt.enable=true
 pm.dexopt.bg-dexopt=speed-profile
 pm.dexopt.boot=verify
-pm.dexopt.first-boot=quicken
+pm.dexopt.first-boot=speed-profile
 pm.dexopt.install=speed-profile
+
+# Performance
+persist.sys.activity_anim_perf_override=true
 
 # Display
 debug.sf.enable_hwc_vds=0
