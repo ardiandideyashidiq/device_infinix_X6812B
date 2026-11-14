@@ -105,11 +105,6 @@
         <fqname>@2.1::IBluetoothAudioProvidersFactory/default</fqname>
     </hal>
     <hal format="hidl">
-        <name>vendor.mediatek.hardware.camera.atms</name>
-        <transport>hwbinder</transport>
-        <fqname>@1.0::IATMs/default</fqname>
-    </hal>
-    <hal format="hidl">
         <name>vendor.mediatek.hardware.camera.bgservice</name>
         <transport>hwbinder</transport>
         <fqname>@1.1::IBGService/internal/0</fqname>
@@ -118,11 +113,6 @@
         <name>vendor.mediatek.hardware.camera.isphal</name>
         <transport>hwbinder</transport>
         <fqname>@1.0::IISPModule/internal/0</fqname>
-    </hal>
-    <hal format="hidl">
-        <name>vendor.mediatek.hardware.camera.postproc</name>
-        <transport>hwbinder</transport>
-        <fqname>@1.0::IPostDevice/internal/0</fqname>
     </hal>
     <hal format="hidl">
         <name>vendor.mediatek.hardware.dfps</name>
