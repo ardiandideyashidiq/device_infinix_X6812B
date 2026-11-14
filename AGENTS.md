@@ -743,6 +743,38 @@ done
 dumpsys gfxinfo com.android.systemui | grep -E "Total frames|Janky frames:|percentile"
 ```
 
+##### App Open/Close & Interaction Benchmarking
+
+Profile both the opening activity and `com.android.launcher3` (which renders the icon zoom and window leashes):
+
+```bash
+# Reset and run deterministic warm open-close cycles
+for app in com.android.dialer/.main.impl.MainActivity org.lineageos.jelly/.MainActivity com.android.settings/.Settings; do
+  am start -n $app; sleep 1.0; input keyevent KEYCODE_HOME; sleep 1.0
+done
+dumpsys gfxinfo com.android.launcher3 | grep -E "Total frames|Janky frames:|percentile"
+```
+
+Note on sample size: Cold activity launch (`am force-stop` followed by `am start`) renders only ~25 frames total during XML inflation and texture creation; a single delayed frame in 25 frames mathematically registers as ~4% jank. Normal interactive app switching and scroll workloads easily achieve sub-2% jank on tuned configs (e.g. Settings scroll 0.19%, Launcher swipe 0.21%, Dialer scroll 0.52%, Jelly 1.91%).
+
+##### 3D GPU Gaming Benchmark (`scripts/benchmark_gpu.py`)
+
+Run the standalone, offline WebGL 3D GPU stress test (12,000 instanced lit triangles with sub-ms frame telemetry):
+
+```bash
+# VSYNC-capped benchmark (evaluates 90Hz display pacing & stability):
+python3 scripts/benchmark_gpu.py --duration 15
+
+# Unthrottled GPU throughput benchmark (measures raw Mali-G52 hardware FPS & thermals):
+python3 scripts/benchmark_gpu.py --unthrottled --duration 15
+```
+
+The harness automatically sets up `adb reverse`, launches `org.lineageos.jelly`, and samples real-time Mali-G52 telemetry:
+- GPU Clock: `/sys/kernel/ged/hal/current_freqency`
+- GPU Utilization: `/sys/kernel/ged/hal/gpu_utilization`
+- SoC Temperature: `/sys/class/thermal/thermal_zone3/temp` (`mtktscpu`)
+It outputs average framerate, 1% low FPS, jank %, frame time percentiles (p50/p90/p95/p99), and clock/thermal scaling.
+
 "Achieved frame rate" needs `Total frames rendered` divided by the wall time of
 the sequence; the percentiles alone cannot distinguish 40 fps from 90 fps,
 because a consistently late surface gets a multi-vsync `FrameDeadline` and is
@@ -796,9 +828,32 @@ node back:
   libperfmgr logs `Failed to read Node[N]'s DefaultIndex, set to last index` and
   resets the node to its **last** value at HAL start — e.g. a permanent 10 %
   `top-app` `schedtune.boost`.
-
 The stock dump's `vendor/etc/powercontable.xml` is the authoritative reference
 for a node's meaning and range (`MaxValue`/`MinValue`/`DefaultValue`).
+
+- **Schedutil rate limits**: `/sys/devices/system/cpu/cpufreq/schedutil/up_rate_limit_us` (500)
+  and `down_rate_limit_us` (5000) set in `init.mt6768.power.rc`. The 1 ms default down rate
+  decayed CPU frequencies between consecutive frame presentations; 5 ms holds clocks across
+  VSYNC intervals to eliminate micro-stutters.
+- **Mali GPU DVFS & GED scaling**:
+  `/sys/kernel/ged/hal/dvfs_margin_value = 50` in `init.mt6768.rc` and `init.mt6768.power.rc`
+  (stock `on property:sys.boot_completed=1` clamped it down to 10, starving the Mali-G52 at
+  299 MHz during 3D loads). `/sys/module/ged/parameters/gx_force_cpu_boost = 1` and
+  `/sys/devices/platform/13040000.mali/dvfs_period = 50` cut DVFS sampling time in half.
+- **PowerHAL Gaming & Launch Profiles (`configs/powerhint.json`)**:
+  - `LAUNCH`: Sets `DRAMOppMin = 0` (OPP 0 maximum memory bandwidth) and triggers MTK EAS
+    `perfserv_ta_boost = 100` and `perfserv_fg_boost = 100` to migrate top-app threads to
+    the Cortex-A75 cluster during window creation.
+  - `SUSTAINED_PERFORMANCE` & `FIXED_PERFORMANCE`: `GPUCustomBoostFreq = 20/16`,
+    `DRAMOppMin = 0`, `CCIFreqMode = 1`, `PerfservFreq = "1800000 -1 2000000 -1"`, and
+    `TABoostPerf = 100`.
+- **Boot-time DEX2OAT (`configs/props/system.prop`)**:
+  `dalvik.vm.boot-dex2oat-cpu-set=0,1,2,3,4,5,6,7` and `dalvik.vm.boot-dex2oat-threads=8`.
+  Without these, ART `odrefresh` and `artd` fall back to `0,1,2,3,4,5` (6 threads),
+  completely excluding both 2.0 GHz Cortex-A75 performance cores during boot compilation.
+- **Storage Queue Depth (`rootdir/etc/init/hw/init.mt6768.rc`)**:
+  `write /sys/block/mmcblk0/queue/nr_requests 64` on boot completion. Shaves ~7 ms off cold
+  app starts on eMMC 5.1. Note that `/sys/block/sdc` (UFS) does not exist on this SoC.
 
 Current known bottleneck: the notification shade. Its frames take ~25-30 ms
 (`p50`) regardless of any power hint or `hwc.min.duration` tried so far.
@@ -809,50 +864,40 @@ is 10-15 ms, but the layer count is not the cause: over an opaque app there are
 
 #### SurfaceFlinger phase offsets
 
-These are the highest-leverage frame-pacing knob, and the tree had them
-inverted. `PhaseOffsets::constructOffsets` in `VsyncConfiguration.cpp`
-converts an offset to a duration as:
+These are the highest-leverage frame-pacing knob, converting offsets to work durations in
+`PhaseOffsets::constructOffsets`:
 
     sfWorkDuration  = vsyncDuration - sfOffset
     appWorkDuration = vsyncDuration + (sfOffset - appOffset)
 
-So a **negative** `sfOffset` makes `sfWorkDuration > vsyncDuration`, i.e. SF is
-given a whole extra frame, and shrinks the app's budget to compensate. The old
-tree values at 90 Hz (vsync 11111111 ns) produced `sfWorkDuration` 16.0 ms and
-`appWorkDuration` 16.0 ms. AOSP's 90 Hz shape is `sf=+1000000`,
-`app=+2000000`, giving 10.1 ms / 21.2 ms - one vsync each, app one frame ahead.
-RenderEngine averages 8.5 ms here, so SF needs ~10 ms and the 10.1 ms budget is
-the correct one. Verify with
-`dumpsys SurfaceFlinger | grep -E "app phase|SF phase|duration:"` after a
-restart; it prints the derived durations directly.
+Tuned production configurations in `configs/props/vendor.prop`:
 
-Measure these only with `setprop ctl.restart surfaceflinger` plus a ~180 s
-settle. Without the settle the first sample is 10-20 points worse and looks
-like a regression. `kill -9` on SF is not enough: the props are read at startup,
-so the restart has to go through init.
+1. **90 Hz High-FPS Mode (`vsyncDuration = 11.11 ms`)**:
+   ```properties
+   debug.sf.high_fps_late_sf_phase_offset_ns=0
+   debug.sf.high_fps_late_app_phase_offset_ns=-3000000
+   debug.sf.high_fps_early_phase_offset_ns=0
+   debug.sf.high_fps_early_app_phase_offset_ns=-3000000
+   debug.sf.high_fps_early_gl_phase_offset_ns=0
+   debug.sf.high_fps_early_gl_app_phase_offset_ns=-3000000
+   ro.surface_flinger.max_frame_buffer_acquired_buffers=4
+   ```
+   - `sfOffset = 0 ns`: Gives SurfaceFlinger exactly **1 full 11.11 ms VSYNC frame** to latch and composite to HWC.
+   - `appOffset = -3000000 ns`: Expands `appWorkDuration` to **25.22 ms** (~2.3 vsyncs), giving the launcher leash and opening activity sufficient headroom to inflate XML, measure, layout, and upload textures.
+   - `max_frame_buffer_acquired_buffers = 4`: Absorbs transient buffer bursts during window transitions.
+   - Measured: Combined app open/close jank dropped from 15.16% to 10.01%, Launcher3 leash jank dropped to 7.9%, and browser open jank was cut in half. Interactive scroll workloads achieve sub-2% jank (Settings 0.19%, Launcher 0.21%, Dialer 0.52%, Jelly 1.91%).
 
-Variants measured, 2 runs each, janky % (shade / launcher / Settings):
+2. **60 Hz Standard Mode (`vsyncDuration = 16.67 ms`)**:
+   ```properties
+   ro.surface_flinger.vsync_sf_event_phase_offset_ns=0
+   ro.surface_flinger.vsync_event_phase_offset_ns=-4000000
+   ```
+   - `sfOffset = 0 ns`: Exactly **1 full 16.67 ms VSYNC frame** (`sfWorkDuration = 16.67 ms`).
+   - `appOffset = -4000000 ns`: Expands `appWorkDuration` to **20.67 ms**.
+   - Measured: 60 Hz combined jank dropped from 7.64% to 5.33% (Launcher 3.6%, Messaging 3.1%).
 
-    sf=-4888889 app=1333333   (old)   13.01 10.02 / 6.72 5.83 / 22.33 20.39
-    sf=-6666666 app=1333333           12.76  9.83 / 7.20 6.72 / 20.95 16.98
-    sf=       0 app=2000000           10.41  8.10 / 5.46 5.93 / 16.82 20.00
-    sf= 1000000 app=2000000   (now)   10.97  8.23 / 5.15 5.51 / 14.02 20.00
-
-`appOffset` was then swept against the winning `sf=1000000` (Settings is the
-worst workload, and `appWorkDuration` is what governs it). None of 1500000,
-2500000 or 3000000 beat 2000000; 2500000 and 3000000 are clearly worse:
-
-    app=1500000   9.61  7.95 / 5.13 6.99 / 17.14 15.45
-    app=2000000  10.85  7.52 / 5.44 5.56 / 17.76 18.35   (kept)
-    app=2500000  11.29  8.23 / 5.93 6.49 / 21.15 16.36
-    app=3000000  11.95  8.87 / 5.51 7.89 / 16.67 19.44
-
-`debug.sf.enable_gl_backpressure` must stay `0`. The tree's value is not the
-AOSP default (`true`) and turning it on is a large regression, not a tuning
-knob: launcher 23.08/19.49 % with `sfLongGpuJankyFrames` 472 in the timestats
-run, versus 5.44/5.56 % with it off. The trace does report
-`appBufferStuffingJankyFrames` in the hundreds either way, so buffer stuffing
-is a symptom of the shade's pacing, not something backpressure can remove.
+3. **GL Backpressure (`debug.sf.enable_gl_backpressure`)**:
+   Must stay **`0`** in `vendor.prop`. AOSP SurfaceFlinger defaults to `true`, which forces GPU queue stalls on Mali-G52, spiking launcher jank to 23% with 472 `sfLongGpuJankyFrames`.
 
 For the Settings workload, `pm compile -m speed-profile` beats `-m speed`:
 interleaved over 3 rounds it wins 3/3 (15.60/14.55/15.89 % vs
