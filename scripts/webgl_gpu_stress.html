@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Mali-G52 GPU Gaming Benchmark</title>
+<style>
+  body, html { margin: 0; padding: 0; overflow: hidden; background: #000; width: 100%; height: 100%; }
+  canvas { width: 100%; height: 100%; display: block; }
+  #hud { position: absolute; top: 12px; left: 12px; color: #00ff66; font-family: monospace; font-size: 16px; text-shadow: 1px 1px 2px #000; z-index: 10; }
+</style>
+</head>
+<body>
+<div id="hud">Initializing Mali-G52 3D Benchmark...</div>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const gl = canvas.getContext('webgl', { powerPreference: 'high-performance', antialias: false });
+
+const vs = `
+attribute vec3 pos;
+attribute vec3 norm;
+attribute vec3 offset;
+attribute vec3 color;
+uniform mat4 uProj;
+uniform mat4 uView;
+uniform float uTime;
+varying vec3 vNorm;
+varying vec3 vColor;
+void main() {
+    float c = cos(uTime * 1.5 + offset.x);
+    float s = sin(uTime * 1.5 + offset.y);
+    mat3 rot = mat3(c, 0, s, 0, 1, 0, -s, 0, c);
+    vec3 p = rot * (pos * 0.12) + offset;
+    vNorm = rot * norm;
+    vColor = color;
+    gl_Position = uProj * uView * vec4(p, 1.0);
+}
+`;
+
+const fs = `
+precision mediump float;
+varying vec3 vNorm;
+varying vec3 vColor;
+uniform vec3 uLight;
+void main() {
+    vec3 n = normalize(vNorm);
+    vec3 l = normalize(uLight);
+    float diff = max(dot(n, l), 0.2);
+    vec3 r = reflect(-l, n);
+    float spec = pow(max(dot(r, vec3(0.0, 0.0, 1.0)), 0.0), 16.0) * 0.5;
+    gl_FragColor = vec4(vColor * diff + vec3(spec), 1.0);
+}
+`;
+
+function compile(src, type) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+}
+
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(vs, gl.VERTEX_SHADER));
+gl.attachShader(prog, compile(fs, gl.FRAGMENT_SHADER));
+gl.linkProgram(prog);
+gl.useProgram(prog);
+
+const cube = [
+  -1,-1, 1, 0,0,1,  1,-1, 1, 0,0,1,  1, 1, 1, 0,0,1, -1,-1, 1, 0,0,1,  1, 1, 1, 0,0,1, -1, 1, 1, 0,0,1,
+  -1,-1,-1, 0,0,-1, -1, 1,-1, 0,0,-1,  1, 1,-1, 0,0,-1, -1,-1,-1, 0,0,-1,  1, 1,-1, 0,0,-1,  1,-1,-1, 0,0,-1,
+  -1, 1,-1, 0,1,0, -1, 1, 1, 0,1,0,  1, 1, 1, 0,1,0, -1, 1,-1, 0,1,0,  1, 1, 1, 0,1,0,  1, 1,-1, 0,1,0,
+  -1,-1,-1, 0,-1,0,  1,-1,-1, 0,-1,0,  1,-1, 1, 0,-1,0, -1,-1,-1, 0,-1,0,  1,-1, 1, 0,-1,0, -1,-1, 1, 0,-1,0,
+   1,-1,-1, 1,0,0,  1, 1,-1, 1,0,0,  1, 1, 1, 1,0,0,  1,-1,-1, 1,0,0,  1, 1, 1, 1,0,0,  1,-1, 1, 1,0,0,
+  -1,-1,-1,-1,0,0, -1,-1, 1,-1,0,0, -1, 1, 1,-1,0,0, -1,-1,-1,-1,0,0, -1, 1, 1,-1,0,0, -1, 1,-1,-1,0,0
+];
+
+const vbo = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube), gl.STATIC_DRAW);
+
+const posLoc = gl.getAttribLocation(prog, 'pos');
+const normLoc = gl.getAttribLocation(prog, 'norm');
+gl.enableVertexAttribArray(posLoc);
+gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 24, 0);
+gl.enableVertexAttribArray(normLoc);
+gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 24, 12);
+
+const COUNT = 1000; // 1,000 lit instanced 3D cubes (12,000 triangles)
+const offsets = [];
+const colors = [];
+const side = 8;
+for (let x = -side; x <= side; x++) {
+  for (let y = -side; y <= side; y++) {
+    for (let z = -side; z <= side; z++) {
+      if (offsets.length / 3 >= COUNT) break;
+      offsets.push(x * 0.40, y * 0.40, z * 0.40);
+      colors.push((x + side)/(side*2), (y + side)/(side*2), (z + side)/(side*2));
+    }
+  }
+}
+
+const ext = gl.getExtension('ANGLE_instanced_arrays');
+const offBuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, offBuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(offsets), gl.STATIC_DRAW);
+const offLoc = gl.getAttribLocation(prog, 'offset');
+gl.enableVertexAttribArray(offLoc);
+gl.vertexAttribPointer(offLoc, 3, gl.FLOAT, false, 0, 0);
+ext.vertexAttribDivisorANGLE(offLoc, 1);
+
+const colBuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, colBuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+const colLoc = gl.getAttribLocation(prog, 'color');
+gl.enableVertexAttribArray(colLoc);
+gl.vertexAttribPointer(colLoc, 3, gl.FLOAT, false, 0, 0);
+ext.vertexAttribDivisorANGLE(colLoc, 1);
+
+gl.enable(gl.DEPTH_TEST);
+
+function matPerspective(fov, aspect, near, far) {
+    const f = 1.0 / Math.tan(fov / 2);
+    const nf = 1 / (near - far);
+    return [
+        f / aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (far + near) * nf, -1,
+        0, 0, (2 * far * near) * nf, 0
+    ];
+}
+
+const uProj = gl.getUniformLocation(prog, 'uProj');
+const uView = gl.getUniformLocation(prog, 'uView');
+const uTime = gl.getUniformLocation(prog, 'uTime');
+const uLight = gl.getUniformLocation(prog, 'uLight');
+
+gl.uniformMatrix4fv(uProj, false, matPerspective(Math.PI/3, canvas.width/canvas.height, 0.1, 100.0));
+gl.uniform3f(uLight, 3.0, 5.0, 4.0);
+
+let totalFrames = 0;
+let jankyFrames = 0;
+let frameTimes = [];
+let lastFrameTime = performance.now();
+let lastHudUpdate = performance.now();
+let hudFrames = 0;
+let curFps = 0.0;
+const hudElem = document.getElementById('hud');
+
+function render(t) {
+    const now = performance.now();
+    const frameDelta = now - lastFrameTime;
+    lastFrameTime = now;
+
+    if (totalFrames > 30) { // Warmup threshold
+        frameTimes.push(frameDelta);
+        if (frameDelta > 16.67) { // Missed 60Hz/90Hz deadline
+            jankyFrames++;
+        }
+    }
+    totalFrames++;
+
+    gl.clearColor(0.03, 0.03, 0.06, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    const timeSec = t * 0.001;
+    const camX = Math.sin(timeSec * 0.5) * 5.4;
+    const camZ = Math.cos(timeSec * 0.5) * 5.4;
+    const view = [
+        camZ/5.4, 0, -camX/5.4, 0,
+        0, 1, 0, 0,
+        camX/5.4, 0, camZ/5.4, 0,
+        0, 0, -5.4, 1
+    ];
+    gl.uniformMatrix4fv(uView, false, view);
+    gl.uniform1f(uTime, timeSec);
+
+    ext.drawArraysInstancedANGLE(gl.TRIANGLES, 0, 36, COUNT);
+
+    hudFrames++;
+    if (now - lastHudUpdate >= 500) {
+        curFps = (hudFrames * 1000) / (now - lastHudUpdate);
+        hudElem.textContent = `FPS: ${curFps.toFixed(1)} | Frames: ${totalFrames} | Janks: ${jankyFrames} | Triangles: ${COUNT * 12}`;
+        hudFrames = 0;
+        lastHudUpdate = now;
+        // Ping telemetry endpoint
+        fetch(`/telemetry?fps=${curFps.toFixed(1)}&frames=${totalFrames}&jank=${jankyFrames}`).catch(() => {});
+    }
+
+    requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+
+// Send final report when requested
+window.addEventListener('beforeunload', () => {
+    navigator.sendBeacon('/finish', JSON.stringify({ frameTimes, totalFrames, jankyFrames }));
+});
+</script>
+</body>
+</html>
