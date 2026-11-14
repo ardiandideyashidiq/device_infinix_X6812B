@@ -648,8 +648,10 @@ Before removing a `.rc` line, sepolicy path, or blob:
   as a lazy service, flooding logcat with:
   `hwservicemanager: Since vendor.mediatek.hardware.mtkradioex@2.0::IMtkRadioEx/imsSlot1 is not registered, trying to start it as a lazy HAL`
   `libc: Unable to set property "ctl.interface_start" to "vendor.mediatek.hardware.mtkradioex@2.0::IMtkRadioEx/imsSlot1": PROP_ERROR_HANDLE_CONTROL_MESSAGE (0x20)`
-- Always declare `@2.2::IMtkRadioEx/*` in `configs/manifests/manifest.xml` to match
-  stock MT6768 firmware and allow `mtkfusionrild` to register successfully.
+- Declare both `@2.2::IMtkRadioEx/*` and `@3.0::IMtkRadioEx/*` in `configs/manifests/manifest.xml`.
+  The `@2.2` entries allow stock MT6768 `mtkfusionrild` (`librilfusion.so`) to register,
+  while `@3.0` satisfies `hwservicemanager::getTransport()` when Android 12+ `ImsService.apk`
+  probes `@3.0` before falling back to `@2.2`, eliminating logcat floods.
 
 ### Battery and Charging
 
