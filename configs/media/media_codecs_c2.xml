@@ -62,6 +62,7 @@
             <Limit name="size" min="64x64" max="3840x2160" />
             <Quirk name="wants-NAL-fragments" />
             <Feature name="adaptive-playback"/>
+            <Feature name="can-swap-width-height"/>
             <Limit name="concurrent-instances" max="15" />
             <Limit name="performance-point-3840x2160" value="30" />
         </MediaCodec>
@@ -140,6 +141,7 @@
             <Limit name="size" min="128x128" max="2560x1440" />
             <Limit name="alignment" value="32x16" />
             <Limit name="block-size" value="16x16" />
+            <Feature name="can-swap-width-height"/>
             <Limit name="concurrent-instances" max="10" />
             <Limit name="performance-point-3840x2160" value="30" />
         </MediaCodec>
@@ -150,16 +152,6 @@
             <Limit name="concurrent-instances" max="10" />
             <Limit name="performance-point-1920x1088" value="30" />
             <Feature name ="special-codec" required="true" />
-        </MediaCodec>
-        <MediaCodec name="c2.mtk.hevc.encoder" type="video/hevc" >
-            <Alias name="OMX.MTK.VIDEO.ENCODER.HEVC" />
-            <Limit name="size" min="160x128" max="2560x1440" />
-            <Limit name="alignment" value="32x16" />
-            <Limit name="block-size" value="16x16" />
-            <Limit name="quality" range="0-100" default="50" />
-            <Limit name="concurrent-instances" max="10" />
-            <Feature name="bitrate-modes" value="VBR,CBR,CQ" />
-            <Limit name="performance-point-3840x2160" value="30" />
         </MediaCodec>
     </Encoders>
 </MediaCodecs>
