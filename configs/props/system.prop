@@ -12,6 +12,8 @@ vendor.camera.aux.packageexcludelist=org.telegram.messenger,com.microsoft.teams,
 vendor.camera.aux.packagelist=com.android.camera,com.google.camera,org.lineageos.aperture
 
 # Dex
+dalvik.vm.boot-dex2oat-cpu-set=0,1,2,3,4,5,6,7
+dalvik.vm.boot-dex2oat-threads=8
 dalvik.vm.dex2oat-cpu-set=0,1,2,3,4,5
 dalvik.vm.dex2oat-threads=6
 dalvik.vm.dex2oat64.enabled=true
