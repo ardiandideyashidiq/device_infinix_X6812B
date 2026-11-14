@@ -79,7 +79,7 @@ BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
 TARGET_NO_KERNEL_OVERRIDE := true
 
 # Workaround to make lineage's soong generator work
-TARGET_KERNEL_SOURCE := $(KERNEL_PATH)/kernel-headers
+TARGET_KERNEL_SOURCE := device/common/kernel-headers
 
 LOCAL_KERNEL := $(KERNEL_PATH)/Image.gz
 PRODUCT_COPY_FILES += \
