@@ -84,6 +84,7 @@ dalvik.vm.heaptargetutilization=0.75
 dalvik.vm.mtk-stack-trace-file=/data/anr/mtk_traces.txt
 
 # Display
+debug.sf.enable_gl_backpressure=0
 debug.sf.hwc.min.duration=5000000
 debug.sf.enable_adpf_cpu_hint=false
 debug.sf.enable_egl_image_tracker=0
