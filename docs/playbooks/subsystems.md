@@ -90,10 +90,19 @@
   as a lazy service, flooding logcat with:
   `hwservicemanager: Since vendor.mediatek.hardware.mtkradioex@2.0::IMtkRadioEx/imsSlot1 is not registered, trying to start it as a lazy HAL`
   `libc: Unable to set property "ctl.interface_start" to "vendor.mediatek.hardware.mtkradioex@2.0::IMtkRadioEx/imsSlot1": PROP_ERROR_HANDLE_CONTROL_MESSAGE (0x20)`
-- Declare both `@2.2::IMtkRadioEx/*` and `@3.0::IMtkRadioEx/*` in `configs/manifests/manifest.xml`.
-  The `@2.2` entries allow stock MT6768 `mtkfusionrild` (`librilfusion.so`) to register,
-  while `@3.0` satisfies `hwservicemanager::getTransport()` when Android 12+ `ImsService.apk`
-  probes `@3.0` before falling back to `@2.2`, eliminating logcat floods.
+- Declare `@2.2::IMtkRadioEx/*` in `configs/manifests/manifest.xml`, matching stock. The `@2.2` entries
+  allow stock MT6768 `mtkfusionrild` (`librilfusion.so`) to register.
+- Do **not** declare `@3.0::IMtkRadioEx/*`. There is no `@3.0` implementation on this device: `librilfusion.so`
+  only knows `@2.0`/`@2.1`/`@2.2` and `/vendor/lib64` ships only those three stubs. Declaring `@3.0` makes
+  `hwservicemanager` resolve the transport, so every client `getService` turns into a lazy-start attempt:
+  `Since vendor.mediatek.hardware.mtkradioex@3.0::IMtkRadioEx/imsSlot1 is not registered, trying to start
+  it as a lazy HAL` + `Tried to start ... but was unable to` + `init: Control message: Could not find ...`
+  + `libc: PROP_ERROR_HANDLE_CONTROL_MESSAGE (0x20)` — four lines per second per instance, and `lshal`
+  shows every instance as `DM,FC` with no PID.
+- The requester is the client, not the manifest. `ImsService.apk` v13 (from the `X6812B` Lineage build,
+  `sharedUserId android.uid.phone`) probes `@3.0::IMtkRadioEx` and the AIDL `IMtkRadioExIms`/`IMtkRadioExVoice`/
+  `IMtkRadioExModem` slots once per second and keeps doing so regardless of what is declared. Fix belongs in
+  the client path (disable the probing component or ship the AIDL HAL), never in phantom declarations.
 
 ### Battery and Charging
 

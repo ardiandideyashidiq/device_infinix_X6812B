@@ -27,40 +27,29 @@ soong-generated inputs you must regenerate them first — see below.
 
 ### sepolicy
 
-The only soong-generated input is `vendor_sepolicy.conf`, a plain `m4`
-invocation. Recover it once from the **split** ninja files (not the single
-`build.lineage_X6812B.ninja`, which does not contain the rule):
+`scripts/check-sepolicy.sh` does the whole thing: it locates `$ANDROID_ROOT`, finds
+the `m4` rule for both `vendor_sepolicy.conf` and
+`sepolicy_neverallows.checkpolicy.conf` in the split ninja files, runs them, and
+runs `checkpolicy` on each. The generated rules land in `out/` (not `/tmp`), so
+they survive reboots; the script regenerates them every run, which is what keeps
+them from going stale after a `.te` edit.
 
 ```bash
-python3 - <<'PY'
-lines=open('out/soong/build.lineage_X6812B.9.ninja', errors='replace').read().splitlines()
-start=next(i for i,l in enumerate(lines) if l.strip()=='# Module:  vendor_sepolicy.conf')
-for i in range(start, start+40):
-    if lines[i].startswith('    command = '):
-        cmd=lines[i].split('command = ',1)[1]
-        j=i+1
-        while j<len(lines) and lines[j].startswith('        ') and '=' not in lines[j][:20]:
-            cmd+=lines[j].strip(); j+=1
-        open('/tmp/opencode/run.sh','w').write(cmd.split(' # hash')[0]+'\n')
-        break
-PY
-bash /tmp/opencode/run.sh
-out/host/linux-x86/bin/checkpolicy -C -M -c 30 -o /tmp/out.cil.raw \
-  out/soong/.intermediates/system/sepolicy/vendor_sepolicy.conf/android_common/X6812B/vendor_sepolicy.conf
+scripts/check-sepolicy.sh
 ```
 
-Repeat the extraction for `# Module:  sepolicy_neverallows.checkpolicy.conf` and
-run `checkpolicy -M` on that too. **Unknown types alone will not catch
-`neverallow` violations** — you need both.
-  (Its `.conf` is under `android_common/sepolicy_neverallows.checkpolicy.conf`,
-  with no `<device>` subdirectory.)
+But **unknown types alone will not catch `neverallow` violations** — that is why
+both configs are compiled. `neverallows` has no `<device>` subdirectory.
 
 Gotchas:
 
-- `checkpolicy` prints `ERROR 'unknown type X'` but **still exits 0**. Read the
-  output and confirm the output file was created; never trust the exit code.
-- The `.conf` files go stale. After editing any `.te` you **must** re-run `m4`
-  or you are validating the old policy.
+- `checkpolicy` prints `ERROR 'unknown type X'` but **still exits 0**. The script
+  therefore treats an empty output file as failure and never trusts the exit code.
+  If you run `checkpolicy` by hand, check `-s`/`-f` on the `.cil` yourself.
+- The rule block moves between `build.lineage_X6812B.N.ninja` splits across
+  builds. The script globs all of them rather than hardcoding `.9.ninja`.
+- A missing rule means `out/` is stale (no successful configure since the module
+  was last touched). The script says so instead of silently passing.
 
 ### VINTF manifest and matrix (checkvintf / assemble_vintf)
 
