@@ -45,6 +45,13 @@ lib_fixups: lib_fixups_user_type = {
 }
 
 blob_fixups: blob_fixups_user_type = {
+    (
+        'vendor/lib/libeffectsconfig.so',
+        'vendor/lib64/libeffectsconfig.so',
+        'vendor/lib/libpowerhal.so',
+        'vendor/lib64/libpowerhal.so',
+    ): blob_fixup()
+        .replace_needed('libtinyxml2.so', 'libtinyxml2-v34.so'),
     'system/lib/libshowlogo.so': blob_fixup()
         .add_needed('libshim_showlogo.so'),
     'vendor/lib/hw/audio.primary.mt6768.so': blob_fixup()

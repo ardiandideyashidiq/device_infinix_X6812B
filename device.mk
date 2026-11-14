@@ -394,6 +394,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     libutils-v32 \
     libui-v30 \
+    libtinyxml2-v34 \
     android.hardware.graphics.common-V1-ndk_platform.vendor
 
 PRODUCT_PACKAGES += \
