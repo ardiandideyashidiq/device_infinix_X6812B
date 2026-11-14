@@ -148,14 +148,16 @@ let hudFrames = 0;
 let curFps = 0.0;
 const hudElem = document.getElementById('hud');
 
-function render(t) {
-    const now = performance.now();
+const urlParams = new URLSearchParams(window.location.search);
+const unthrottled = urlParams.get('unthrottled') === '1';
+
+function renderFrame(now) {
     const frameDelta = now - lastFrameTime;
     lastFrameTime = now;
 
-    if (totalFrames > 30) { // Warmup threshold
+    if (totalFrames > 30) {
         frameTimes.push(frameDelta);
-        if (frameDelta > 16.67) { // Missed 60Hz/90Hz deadline
+        if (frameDelta > 16.67) {
             jankyFrames++;
         }
     }
@@ -164,7 +166,7 @@ function render(t) {
     gl.clearColor(0.03, 0.03, 0.06, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    const timeSec = t * 0.001;
+    const timeSec = now * 0.001;
     const camX = Math.sin(timeSec * 0.5) * 5.4;
     const camZ = Math.cos(timeSec * 0.5) * 5.4;
     const view = [
@@ -177,6 +179,7 @@ function render(t) {
     gl.uniform1f(uTime, timeSec);
 
     ext.drawArraysInstancedANGLE(gl.TRIANGLES, 0, 36, COUNT);
+    gl.flush();
 
     hudFrames++;
     if (now - lastHudUpdate >= 500) {
@@ -184,14 +187,25 @@ function render(t) {
         hudElem.textContent = `FPS: ${curFps.toFixed(1)} | Frames: ${totalFrames} | Janks: ${jankyFrames} | Triangles: ${COUNT * 12}`;
         hudFrames = 0;
         lastHudUpdate = now;
-        // Ping telemetry endpoint
         fetch(`/telemetry?fps=${curFps.toFixed(1)}&frames=${totalFrames}&jank=${jankyFrames}`).catch(() => {});
     }
-
-    requestAnimationFrame(render);
 }
-requestAnimationFrame(render);
 
+if (unthrottled) {
+    function loop() {
+        for (let i = 0; i < 4; i++) {
+            renderFrame(performance.now());
+        }
+        setTimeout(loop, 0);
+    }
+    loop();
+} else {
+    function loop(t) {
+        renderFrame(t);
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+}
 // Send final report when requested
 window.addEventListener('beforeunload', () => {
     navigator.sendBeacon('/finish', JSON.stringify({ frameTimes, totalFrames, jankyFrames }));

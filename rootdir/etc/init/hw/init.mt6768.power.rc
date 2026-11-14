@@ -4,6 +4,9 @@ on early-init
     # GPU DVFS
     write /sys/kernel/ged/hal/timer_base_dvfs_margin 798
     write /sys/kernel/ged/hal/custom_boost_gpu_freq 31
+    write /sys/kernel/ged/hal/dvfs_margin_value 50
+    write /sys/module/ged/parameters/gx_force_cpu_boost 1
+    write /sys/devices/platform/13040000.mali/dvfs_period 50
 
     # sched
     write /proc/sys/kernel/sched_latency_ns 4000000

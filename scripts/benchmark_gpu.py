@@ -86,7 +86,7 @@ def calculate_percentiles(values):
         return s[k]
     return p(50), p(90), p(95), p(99)
 
-def run_benchmark(duration_sec=15, port=8089):
+def run_benchmark(duration_sec=15, port=8089, unthrottled=False):
     html_file = os.path.join(SCRIPT_DIR, 'webgl_gpu_stress.html')
     if not os.path.exists(html_file):
         print(f"Error: {html_file} not found.")
@@ -101,7 +101,7 @@ def run_benchmark(duration_sec=15, port=8089):
         subprocess.run(['adb', 'shell', 'input keyevent KEYCODE_WAKEUP; wm dismiss-keyguard'], check=True)
         time.sleep(1)
 
-        url = f'http://localhost:{port}/webgl_gpu_stress.html'
+        url = f'http://localhost:{port}/webgl_gpu_stress.html' + ('?unthrottled=1' if unthrottled else '')
         subprocess.run(['adb', 'shell', 'am', 'force-stop', 'org.lineageos.jelly'], check=True)
         subprocess.run(['adb', 'shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', url, '-n', 'org.lineageos.jelly/.MainActivity'], check=True)
 
@@ -199,5 +199,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Deterministic 3D GPU Gaming Benchmark for Infinix X6812B')
     parser.add_argument('--duration', type=int, default=15, help='Benchmark duration in seconds (default: 15)')
     parser.add_argument('--port', type=int, default=8089, help='Local server port (default: 8089)')
+    parser.add_argument('--unthrottled', action='store_true', help='Run unthrottled beyond 90Hz VSYNC cap (pure GPU throughput benchmark)')
     args = parser.parse_args()
-    run_benchmark(duration_sec=args.duration, port=args.port)
+    run_benchmark(duration_sec=args.duration, port=args.port, unthrottled=args.unthrottled)
