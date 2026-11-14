@@ -903,6 +903,16 @@ Debugging steps:
    (`uvPitch=544`), while `MTK_V4L2` venc expects `yPitch/2=536`. Keep
    `<Limit name="alignment" value="32x16" />` in `media_codecs_c2.xml` so
    encoders align width to 32 (e.g. 1056x2432).
+6. Screen recording crash on start (`Cannot find throughput setting`):
+   SystemUI (`ScreenRecordPermissionDialogDelegate.kt`) defaults to HEVC
+   if `c2.mtk.hevc.encoder` is declared. MT6768 `libvcodecdrv.so`
+   (`HEVC_ThroughputSetting`) has no throughput profile for 90 fps and rejects
+   resolutions > 1080p if framerate != 30 fps. Do not declare `c2.mtk.hevc.encoder`
+   in `media_codecs_c2.xml` (align with stock, which disabled C2 HEVC encoder);
+   keep `config_screenRecorderMaxFramerate` capped to 60 in `SystemUIResTarget`;
+   and add `<Feature name="can-swap-width-height"/>` to `c2.mtk.avc.decoder`
+   and `encoder` so portrait `1080x2460` does not fail decoder limits and get
+   downscaled to `948x2160`.
 
 - `logcat` floods at 30+ fps with `TranCam/Plugin_TranStream` and `Hal3ARaw`;
   always query with `logcat -b main,crash -d -t 500 '*:W'` or `-s <tags>`, and
