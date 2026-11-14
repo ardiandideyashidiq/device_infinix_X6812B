@@ -150,6 +150,8 @@ blob_fixups: blob_fixups_user_type = {
     ): blob_fixup()
         .patchelf_version('0_17_2')
         .replace_needed('libui-v32.so', 'libui-v30.so'),
+    'vendor/lib64/libcodec2_mtk_c2store.so': blob_fixup()
+        .sig_replace('6C 69 62 63 6F 64 65 63 32 5F 6D 74 6B 5F 76 64 65 63 2E 73 6F', '6C 69 62 63 6F 64 65 63 32 5F 6D 74 6B 5F 78 64 65 63 2E 73 6F'),
 }  # fmt: skip
 
 module = ExtractUtilsModule(
