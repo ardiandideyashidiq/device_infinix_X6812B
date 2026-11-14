@@ -7,5 +7,4 @@ vendor.mediatek.hardware.camera.isphal@1.0.so
 libstdc++.so
 libarcsoft_sn_mtk_apu.so
 libarcsoft_super_night_raw_mtk.so
-libarcsoft_sn_mtk_apu.so
 libarcsoft_portrait_super_night_raw_mtk.so

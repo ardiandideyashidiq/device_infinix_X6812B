@@ -120,7 +120,6 @@ ro.vendor.mtk_fm_50khz_support=1
 ro.vendor.mtk_agps_app=1
 ro.vendor.mtk_gps_support=1
 ro.vendor.mtk_log_hide_gps=1
-ro.vendor.mtk_log_hide_gps=1
 
 # Graphics
 ro.hardware.egl=mali
@@ -150,7 +149,7 @@ debug.stagefright.c2inputsurface=-1
 media.c2.dmabuf.padding=512
 media.stagefright.thumbnail.prefer_hw_codecs=true
 ro.vendor.mtk_config_max_dram_size=0x800000000
-vendor.mtk.vdec.waitkeyframeforplay=7
+vendor.mtk.vdec.waitkeyframeforplay=11
 
 # Neural Networks
 debug.mtk_tflite.target_nnapi=29
