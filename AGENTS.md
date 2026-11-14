@@ -913,6 +913,13 @@ Debugging steps:
    and add `<Feature name="can-swap-width-height"/>` to `c2.mtk.avc.decoder`
    and `encoder` so portrait `1080x2460` does not fail decoder limits and get
    downscaled to `948x2160`.
+7. Video playback failure (`VIDIOC_QBUF Failed: Invalid argument` / `dma_general_buf is err`):
+   Prebuilt `libcodec2_mtk_vdec.so` from Xiaomi mt6768 cannot queue DMABUFs to
+   Infinix's 4.14.186 kernel `vcodec_dec` driver on `V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`,
+   failing in `vb2ops_vdec_buf_prepare`. All `c2.mtk.*.decoder` video decoders abort
+   immediately on every video. Do not declare `c2.mtk.*.decoder` video decoders in
+   `media_codecs_c2.xml` (align with stock, which left C2 video decoding to Google's
+   optimized NEON `c2.android.*.decoder` software decoders).
 
 - `logcat` floods at 30+ fps with `TranCam/Plugin_TranStream` and `Hal3ARaw`;
   always query with `logcat -b main,crash -d -t 500 '*:W'` or `-s <tags>`, and
