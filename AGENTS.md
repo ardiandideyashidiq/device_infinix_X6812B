@@ -638,6 +638,19 @@ Before removing a `.rc` line, sepolicy path, or blob:
   `checkvintf --check-one` — a leftover of the other version conflicts as
   duplicate FqInstance.
 
+### Telephony and RIL (HIDL Radio & MtkRadioEx)
+
+- MediaTek's telephony stack registers `vendor.mediatek.hardware.mtkradioex` at
+  version **`@2.2`** (via `librilfusion.so` in `mtkfusionrild`).
+- If `manifest.xml` declares `@2.0` instead of `@2.2`, HIDL rejects registration:
+  `Service vendor.mediatek.hardware.mtkradioex@2.2::IMtkRadioEx/imsSlot1 must be in VINTF manifest in order to register/get`.
+- This rejection causes clients (`ImsService.apk`) to fall back to starting it
+  as a lazy service, flooding logcat with:
+  `hwservicemanager: Since vendor.mediatek.hardware.mtkradioex@2.0::IMtkRadioEx/imsSlot1 is not registered, trying to start it as a lazy HAL`
+  `libc: Unable to set property "ctl.interface_start" to "vendor.mediatek.hardware.mtkradioex@2.0::IMtkRadioEx/imsSlot1": PROP_ERROR_HANDLE_CONTROL_MESSAGE (0x20)`
+- Always declare `@2.2::IMtkRadioEx/*` in `configs/manifests/manifest.xml` to match
+  stock MT6768 firmware and allow `mtkfusionrild` to register successfully.
+
 ### Battery and Charging
 
 - Transsion/MediaTek kernel fuelgauge drivers (`fuelgauged`) report scaled-down
