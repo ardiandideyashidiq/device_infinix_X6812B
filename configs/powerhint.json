@@ -272,6 +272,102 @@
       "Value": "1"
     },
     {
+      "PowerHint": "SUSTAINED_PERFORMANCE",
+      "Node": "DRAMOppMin",
+      "Duration": 0,
+      "Value": "0"
+    },
+    {
+      "PowerHint": "SUSTAINED_PERFORMANCE",
+      "Node": "CCIFreqMode",
+      "Duration": 0,
+      "Value": "1"
+    },
+    {
+      "PowerHint": "SUSTAINED_PERFORMANCE",
+      "Node": "GPUCustomBoostFreq",
+      "Duration": 0,
+      "Value": "20"
+    },
+    {
+      "PowerHint": "SUSTAINED_PERFORMANCE",
+      "Node": "GEDMargin",
+      "Duration": 0,
+      "Value": "25"
+    },
+    {
+      "PowerHint": "SUSTAINED_PERFORMANCE",
+      "Node": "GPUDVFSInterval",
+      "Duration": 0,
+      "Value": "50"
+    },
+    {
+      "PowerHint": "SUSTAINED_PERFORMANCE",
+      "Node": "PerfservFreq",
+      "Duration": 0,
+      "Value": "1800000 -1 2000000 -1"
+    },
+    {
+      "PowerHint": "SUSTAINED_PERFORMANCE",
+      "Node": "TABoostPerf",
+      "Duration": 0,
+      "Value": "100"
+    },
+    {
+      "PowerHint": "FIXED_PERFORMANCE",
+      "Node": "DRAMOppMin",
+      "Duration": 0,
+      "Value": "0"
+    },
+    {
+      "PowerHint": "FIXED_PERFORMANCE",
+      "Node": "CCIFreqMode",
+      "Duration": 0,
+      "Value": "1"
+    },
+    {
+      "PowerHint": "FIXED_PERFORMANCE",
+      "Node": "GPUCustomBoostFreq",
+      "Duration": 0,
+      "Value": "16"
+    },
+    {
+      "PowerHint": "FIXED_PERFORMANCE",
+      "Node": "GEDMargin",
+      "Duration": 0,
+      "Value": "25"
+    },
+    {
+      "PowerHint": "FIXED_PERFORMANCE",
+      "Node": "GPUSchedMode",
+      "Duration": 0,
+      "Value": "1"
+    },
+    {
+      "PowerHint": "FIXED_PERFORMANCE",
+      "Node": "GPUDVFSInterval",
+      "Duration": 0,
+      "Value": "50"
+    },
+    {
+      "PowerHint": "FIXED_PERFORMANCE",
+      "Node": "PerfservFreq",
+      "Duration": 0,
+      "Value": "1800000 -1 2000000 -1"
+    },
+    {
+      "PowerHint": "FIXED_PERFORMANCE",
+      "Node": "TABoostPerf",
+      "Duration": 0,
+      "Value": "100"
+    },
+    {
+      "PowerHint": "FIXED_PERFORMANCE",
+      "Node": "FGBoostPerf",
+      "Duration": 0,
+      "Value": "100"
+    },
+    {
       "PowerHint": "INTERACTION",
       "Node": "TASchedtuneBoost",
       "Duration": 0,

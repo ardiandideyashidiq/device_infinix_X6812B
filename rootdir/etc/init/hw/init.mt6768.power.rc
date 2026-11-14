@@ -12,6 +12,8 @@ on early-init
     write /proc/sys/kernel/sched_latency_ns 4000000
     write /proc/sys/kernel/sched_min_granularity_ns 500000
     write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
+    write /sys/devices/system/cpu/cpufreq/schedutil/up_rate_limit_us 500
+    write /sys/devices/system/cpu/cpufreq/schedutil/down_rate_limit_us 5000
 
 on post-fs-data
     chown system system /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_fg_uclamp_min
