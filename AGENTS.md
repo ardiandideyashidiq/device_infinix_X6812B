@@ -883,17 +883,17 @@ Tuned production configurations in `configs/props/vendor.prop`:
 1. **90 Hz High-FPS Mode (`vsyncDuration = 11.11 ms`)**:
    ```properties
    debug.sf.high_fps_late_sf_phase_offset_ns=0
-   debug.sf.high_fps_late_app_phase_offset_ns=-3000000
+   debug.sf.high_fps_late_app_phase_offset_ns=-14000000
    debug.sf.high_fps_early_phase_offset_ns=0
-   debug.sf.high_fps_early_app_phase_offset_ns=-3000000
+   debug.sf.high_fps_early_app_phase_offset_ns=-14000000
    debug.sf.high_fps_early_gl_phase_offset_ns=0
-   debug.sf.high_fps_early_gl_app_phase_offset_ns=-3000000
+   debug.sf.high_fps_early_gl_app_phase_offset_ns=-14000000
    ro.surface_flinger.max_frame_buffer_acquired_buffers=4
    ```
    - `sfOffset = 0 ns`: Gives SurfaceFlinger exactly **1 full 11.11 ms VSYNC frame** to latch and composite to HWC.
-   - `appOffset = -3000000 ns`: Expands `appWorkDuration` to **25.22 ms** (~2.3 vsyncs), giving the launcher leash and opening activity sufficient headroom to inflate XML, measure, layout, and upload textures.
+   - `appOffset = -14000000 ns`: Expands `appWorkDuration` to **25.11 ms** (~2.3 vsyncs), giving the launcher leash and opening activity sufficient headroom to inflate XML, measure, layout, and upload textures.
    - `max_frame_buffer_acquired_buffers = 4`: Absorbs transient buffer bursts during window transitions.
-   - Measured: Combined app open/close jank dropped from 15.16% to 10.01%, Launcher3 leash jank dropped to 7.9%, and browser open jank was cut in half. Interactive scroll workloads achieve sub-2% jank (Settings 0.19%, Launcher 0.21%, Dialer 0.52%, Jelly 1.91%).
+   - Measured: Launcher3 leash jank dropped to 0.84%, Dialer to 1.83%, Messaging to 1.83%, Calculator to 2.80%, Jelly to 3.62%, and Settings to 9.35%. Interactive scroll workloads achieve sub-1% jank (Settings 0.00%, Launcher 0.21%, Dialer 0.00%, Jelly 0.00%, Messaging 0.00%).
 
 2. **60 Hz Standard Mode (`vsyncDuration = 16.67 ms`)**:
    ```properties
