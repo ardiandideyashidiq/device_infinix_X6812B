@@ -986,8 +986,11 @@ Debugging steps:
    Infinix's 4.14.186 kernel `vcodec_dec` driver on `V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE`,
    failing in `vb2ops_vdec_buf_prepare`. All `c2.mtk.*.decoder` video decoders abort
    immediately on every video. Do not declare `c2.mtk.*.decoder` video decoders in
-   `media_codecs_c2.xml` (align with stock, which left C2 video decoding to Google's
-   optimized NEON `c2.android.*.decoder` software decoders).
+   `media_codecs_c2.xml`. In addition, prebuilt `libcodec2_mtk_c2store.so` hardcodes
+   a static loader table that registers `c2.mtk.*.decoder` directly; patch its reference
+   to `libcodec2_mtk_vdec.so` via `extract-files.py` (`sig_replace`) so it does not
+   register broken decoders into C2 store, allowing video players (NewPipe, ExoPlayer)
+   to use Google's optimized NEON `c2.android.*.decoder` software decoders without crashing.
 
 - `logcat` floods at 30+ fps with `TranCam/Plugin_TranStream` and `Hal3ARaw`;
   always query with `logcat -b main,crash -d -t 500 '*:W'` or `-s <tags>`, and
