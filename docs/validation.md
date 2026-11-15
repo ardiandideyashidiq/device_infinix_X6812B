@@ -333,9 +333,63 @@ adb shell "chmod 755 /vendor/bin/hw/android.hardware.health-service.mediatek && 
 adb shell "killall -9 android.hardware.health-service.mediatek; sleep 1.5; pidof android.hardware.health-service.mediatek"
 adb shell "dumpsys battery"
 ```
+### Pre-build checklist (do this before asking for a build)
+
+Three checks, under a minute each, that catch the failure classes which
+otherwise surface only after hours of compiling. Run all three after any change
+to `proprietary-files.txt`, `device.mk`, or a regenerated vendor `Android.bp`.
+
+**1. Module-name collision.** Soong resolves this last and it aborts the whole
+build. `hardware/lineage/compat` and `prebuilts/vndk` both define modules a
+vendor tree is likely to redefine. Match on `name:` at low indentation — a bare
+`name:` regex also matches `filename:` keys and produces duplicates that are not
+real.
+
+```bash
+python3 - <<'PY'
+import re
+def bp_names(path):
+    s = open(path, errors='replace').read()
+    return set(re.findall(r'^\s{0,8}name:\s*"([^"]+)"', s, re.M))
+
+ours   = bp_names('vendor/infinix/X6812B/Android.bp')
+compat = bp_names('hardware/lineage/compat/Android.bp')
+hit = sorted(ours & compat)
+print('collisions:', hit or 'none')
+PY
+```
+
+Any hit is a real error of the form
+`MODULE.TARGET.SHARED_LIBRARIES.<name> already defined by hardware/lineage/compat`.
+Fix it by dropping the extraction from `proprietary-files.txt` and letting the
+compat module win, unless the dump blob is genuinely different — check with
+`readelf -d` on both before deciding.
+
+**2. Replay the exact `check_elf_file` command.** The fastest way to prove an ELF
+change is correct; see "prebuilt ELF dependencies" above for the extraction
+snippet. This catches both a `DT_NEEDED` missing from `shared_libs` and a
+compat module that under-declares its dependencies — the latter is upstream
+breakage you cannot fix in this tree, so know about it before the build, not
+after.
+
+**3. SONAME audit.** See "Standalone vendor tree SONAME audit" above. Catches
+`DT_SONAME != filename` on a newly extracted blob.
+
+If a check names a module in `hardware/lineage/compat` or `prebuilts/vndk`,
+the fix is not in this tree. Decide up front whether to work around it at the
+device level (link a different, correctly-declared version of the module) or
+accept it, and say so before the build instead of discovering it hours in.
+
 ### What cannot be fixed without a build
 
 `stem`/`module name` collisions, duplicate install rules and AIDL version
 clashes are resolved by soong's module graph, not by a standalone tool. For those
 you must reason from `Android.bp` and the installs file, then ask for a build.
 
+The checklist above narrows these down but does not replace the build for two
+reasons: an undefined reference can be satisfied by a module whose name only
+exists after soong's variant/suffix machinery runs, and a partial `Android.bp`
+index gives false positives — a checker that does not parse
+`hardware/interfaces`, `hardware/mediatek` and `prebuilts/vndk` will report
+every HIDL module as undefined. Prefer a narrow, trusted check over a broad one:
+a validator that cries wolf gets ignored, which is worse than not having it.
