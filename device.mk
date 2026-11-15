@@ -409,6 +409,9 @@ PRODUCT_PACKAGES += \
     libshim_showlogo \
     libshim_unwindstack
 
+# Bootloader
+$(call soong_config_set_bool,fastbootd,bypass_lock_state,true)
+
 # Wi-Fi
 $(call soong_config_set_bool,mediatek_wifi_hal,use_pre_u_qpr2_struct,true)
 PRODUCT_PACKAGES += \
