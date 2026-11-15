@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <android-base/file.h>
+
 #include <gui/Surface.h>
 #include <gui/SurfaceComposerClient.h>
 #include <ui/DisplayMode.h>
@@ -11,6 +13,7 @@
 #include <utils/Timers.h>
 
 #include <new>
+#include <string>
 
 namespace android {
 
@@ -32,6 +35,11 @@ using namespace android;
 extern "C" {
 
 ui::Size _ZN7android2ui4Size7INVALIDE;
+
+void _ZN7android4base8BasenameERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE(
+    std::string* out, const std::string& path) {
+    new (out) std::string(android::base::Basename(std::string_view(path)));
+}
 
 void _ZN7android21SurfaceComposerClient23getInternalDisplayTokenEv(sp<IBinder>* out) {
     const auto ids = SurfaceComposerClient::getPhysicalDisplayIds();
