@@ -393,8 +393,7 @@ PRODUCT_PACKAGES += \
 # VNDK
 PRODUCT_PACKAGES += \
     libutils-v32 \
-    libui-v32 \
-    libstagefright_foundation-v33 \
+    libui-v30 \
     libtinyxml2-v34 \
     android.hardware.graphics.common-V1-ndk_platform.vendor
 
