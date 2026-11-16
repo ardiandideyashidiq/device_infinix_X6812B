@@ -849,8 +849,10 @@ dumpsys gfxinfo com.android.systemui | grep -E "Total frames|Janky frames:|perce
 - Screen recording crash on start (`Cannot find throughput setting`): SystemUI defaults to HEVC when
   `c2.mtk.hevc.encoder` is declared, and `libvcodecdrv.so` (`HEVC_ThroughputSetting`) has no profile for
   90 fps and rejects >1080p at any framerate other than 30. Do not declare `c2.mtk.hevc.encoder` (stock
-  disabled the C2 HEVC encoder); keep `config_screenRecorderMaxFramerate` ≤ 60 in `SystemUIResTarget`; add
-  `<Feature name="can-swap-width-height"/>` to `c2.mtk.avc.decoder` and `encoder` so portrait 1080×2460
+  disabled the C2 HEVC encoder); keep `config_screenRecorderMaxFramerate` = 30 in `SystemUIResTarget`
+  (at 90 Hz, `floor(90/60)=1` forces SurfaceFlinger to composite the virtual display at 90 Hz, choking
+  the 30 fps hardware VENC encoder and GPU; 30 Hz gives divisor 3, rendering 1 frame per 3 vsyncs without drops);
+  add `<Feature name="can-swap-width-height"/>` to `c2.mtk.avc.decoder` and `encoder` so portrait 1080×2460
   is not downscaled to 948×2160.
 - Playback failure (`VIDIOC_QBUF Failed: Invalid argument` / `dma_general_buf is err`): the Xiaomi-derived
   `libcodec2_mtk_vdec.so` cannot queue DMABUFs to Infinix's `vcodec_dec` driver
