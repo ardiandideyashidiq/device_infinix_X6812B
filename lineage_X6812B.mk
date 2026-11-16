@@ -36,7 +36,7 @@ $(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)
 
 WITH_GMS := true
 
-PRODUCT_PRODUCT_PROPERTIES += persist.sys.ax_debug_enabled=1
+# PRODUCT_PRODUCT_PROPERTIES += persist.sys.ax_debug_enabled=1
 
 AXION_CAMERA_REAR_INFO := 50
 AXION_CAMERA_FRONT_INFO := 8
