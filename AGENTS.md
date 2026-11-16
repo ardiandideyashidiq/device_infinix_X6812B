@@ -50,8 +50,8 @@ Key paths:
 8. **Verify a prebuilt or shim fix host-side before the user builds again.** Never ask for a build to test
    a compile error or an ELF check you can reproduce locally. See "Rebuild one C++ source by hand" and
    "prebuilt ELF dependencies".
-9. **Subsystem work requires reading the matching playbook section first** (Audio, Wi-Fi/Tethering, USB,
-   Telephony/RIL, Battery, Offline charging, Sensors, Display/Refresh, Touch/DT2W, UI jank/Power,
+9. **Subsystem work requires reading the matching playbook section first** (Audio, Wi-Fi/Tethering, Bluetooth,
+   USB, Telephony/RIL, Battery, Offline charging, Sensors, Display/Refresh, Touch/DT2W, UI jank/Power,
    Camera/Media). Each section opens with the trap that is already known on this device.
 10. **Validate host-side before the device sees it.** Manifest, property, `file_contexts`, `.rc`, ELF and
     XML edits all have a standalone validator below. `xmllint --noout` proves well-formed XML, not a
@@ -490,6 +490,21 @@ new content into `/vendor` on the **next** boot, not immediately. `ro.*` props c
 reboot via APatch's `/data/adb/ap/bin/resetprop` (`resetprop <prop> <val>`, `resetprop -d <prop>`), then
 restart the consuming daemon.
 
+Live testing without reboot (APatch tools in `/data/adb/ap/bin/`):
+- **Live SELinux policy injection (`apd sepolicy --live`)**:
+  This kernel cannot be set to permissive (`setenforce 0` fails with `Invalid argument`). Instead of rebooting
+  or getting blocked on denials during testing, inject rules directly into the kernel's live policy:
+  ```bash
+  su -c '/data/adb/ap/bin/apd sepolicy --live "allow <scontext> <tcontext> <tclass> { <perms> }"'
+  ```
+- **Bind-mounting executables across filesystems**:
+  - `/data` is mounted with the `nosuid` flag. Executing a daemon bind-mounted from `/data/` causes init
+    domain transitions to fail with `avc: denied { nosuid_transition } for scontext=u:r:init:s0 tcontext=u:r:<hal>:s0 tclass=process2`.
+  - Staging fix: copy replacement binaries to `/tmp/` (`tmpfs`, no `nosuid`), set permissions and context
+    (`chmod 755`, `chcon <exec_context>`), then `mount --bind /tmp/<bin> /vendor/bin/hw/<bin>`.
+  - Starting vendor HALs from shell: `init` rejects `ctl.start$<vendor_svc>` from shell context.
+    Inject `allow shell ctl_start_prop property_service set;` via `apd sepolicy --live` before running `start <svc>`.
+
 Safe to restart: HAL binaries (`killall <hal-binary>`, init respawns them if `class hal`), `restart` on a
 single HAL's init service, and `surfaceflinger` — which recovers on its own **only if** `hwservicemanager`
 is healthy.
@@ -591,6 +606,28 @@ Read the matching section before editing anything in that subsystem.
   `usingLegacyDnsProxy=false`, `TetherController` still passes `--port=0` and `dnsmasq`'s `192.168.42–47.x`
   ranges miss `IpServer`'s randomized `ap0` subnet, breaking lease assignment too.
 
+### Bluetooth
+
+- **Controller opcode `0x0C5A` (`READ_DEFAULT_ERRONEOUS_DATA_REPORTING`) crash trap**:
+  MediaTek combo chips (MT6768) advertise support for this HCI command in their `local_supported_commands`
+  bitmask (byte 18, bits 2 & 3). However, when the Android GD Bluetooth stack queries it during initialization,
+  the chip firmware responds with a `Command Status` (`UNKNOWN_HCI_COMMAND`) event instead of `Command Complete`.
+  The stack asserts in `packages/modules/Bluetooth/system/gd/hci/hci_layer.cc:278` (`READ_DEFAULT_ERRONEOUS_DATA_REPORTING
+  was not expecting status event`) and crashes `com.android.bluetooth` with `SIGABRT` (`tombstone_10`).
+- **AIDL HAL implementation requirements (`hardware/mediatek/aidl/bluetooth/BluetoothHci.cpp`)**:
+  1. **Mask broken command bits**: In `hciEventReceived`, intercept `CommandComplete` for
+     `READ_LOCAL_SUPPORTED_COMMANDS` (`0x1002`, `raw_event[0]==0x0E && raw_event[3]==0x02 && raw_event[4]==0x10`)
+     and clear byte 18 bits 2 and 3 (`raw_event[24] &= ~0x0C;`). This prevents the host stack from ever sending `0x0C5A`.
+  2. **Status event fallback**: Convert any stray `0x0F` Command Status event for opcode `0x0C5A` into a
+     synthetic `0x0E` Command Complete event (`{0x0e, 0x04, num_pkts, 0x5a, 0x0c, 0x01}`) to satisfy the AOSP assert.
+  3. **Death recipient linking**: Must call `mDeathRecipient->LinkToDeath(cb)` in `initialize()` and `UnlinkToDeath`
+     in `close()`. If omitted, crashes leave the HAL in `ONE_CLIENT` state (`state = 2`). The framework's restart
+     attempt then gets `Status::ALREADY_INITIALIZED`, which fatally crashes AOSP in `hci_backend_aidl.cc:40`
+     (`initializationComplete: status == AidlStatus::SUCCESS`).
+- **Live verification**:
+  `svc bluetooth enable` / `svc bluetooth disable`. Check status with `dumpsys bluetooth_manager` (`enabled: true`,
+  `state: ON`). Verify active scanning, ACL link (`LST_CONNECTED`), and profile loading (`A2DP`, `HEADSET`, `HID_HOST`, `PAN`).
+
 ### USB and ports
 
 - 4.14 uses `/sys/class/dual_role_usb/dual-role-usb20` (`musb-hdrc`), **not** Linux Type-C
@@ -660,6 +697,13 @@ Read the matching section before editing anything in that subsystem.
   `vendor/lib{,64}/libmmc5603_x6812.so` is missing from `proprietary-files.txt`, `VendorInterface` logs
   `get lib_interface fail dlopen operation`, and Magnetometer, Gyroscope, Orientation and all six fusion
   sensors return all zeros in every app. Keep both binaries in `proprietary-files.txt` under `# Sensors`.
+- **MEMSIC current compensation denial**: The compass driver attempts to open `/sys/class/power_supply/battery/current_now`
+  and `/sys/class/power_supply/usb/online` to compensate magnetic distortion caused by charging current. Requires
+  `allow hal_sensors_default sysfs_batteryinfo:file r_file_perms;` in `sepolicy/vendor/hal_sensors_default.te`,
+  otherwise logcat floods with `memsic_log open SYS_FS_CURRENT failed, Error 13`.
+- **Client registration**: Sensors show 0 active clients when auto-rotate is toggled off (`settings get system accelerometer_rotation` = 0).
+  Enable with `settings put system accelerometer_rotation 1` to start window orientation listening. Verify active streams with
+  `dumpsys sensorservice`.
 
 ### Display and refresh rate
 
