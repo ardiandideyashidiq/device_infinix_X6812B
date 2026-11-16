@@ -5,7 +5,6 @@ persist.adb.nonblocking_ffs=1
 ro.apk_verity.mode=2
 
 # Audio
-ro.vendor.camera3.zsl.default=140
 ro.vendor.mtk_audio_alac_support=1
 ro.vendor.mtk_audio_ape_support=1
 ro.vendor.mtk_audio_tuning_tool_ver=V2.2
@@ -54,6 +53,7 @@ persist.vendor.camera3.pipeline.bufnum.min.low_ram.lcso=6
 persist.vendor.camera3.pipeline.bufnum.min.low_ram.rrzo=6
 persist.vendor.camera3.pipeline.bufnum.min.low_ram.rsso=6
 ro.mtk_cam_stereo_camera_support=1
+ro.vendor.camera3.zsl.default=140
 ro.vendor.camera_tran_fake_stereo_support=1
 ro.vendor.camera_tran_hal_server_support=1
 ro.vendor.mtk_camera_app_version=3
@@ -74,14 +74,6 @@ vendor.connsys.driver.ready=no
 
 # Crypto
 ro.crypto.volume.filenames_mode=aes-256-cts
-
-# Dalvik
-dalvik.vm.heapgrowthlimit=256m
-dalvik.vm.heapmaxfree=8m
-dalvik.vm.heapminfree=512k
-dalvik.vm.heapsize=512m
-dalvik.vm.heaptargetutilization=0.75
-dalvik.vm.mtk-stack-trace-file=/data/anr/mtk_traces.txt
 
 # Display
 debug.sf.enable_gl_backpressure=0

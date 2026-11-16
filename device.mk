@@ -14,6 +14,9 @@ $(call inherit-product, vendor/infinix/X6812B/X6812B-vendor.mk)
 
 PRODUCT_SHIPPING_API_LEVEL := 30
 
+# Dalvik
+$(call inherit-product, frameworks/native/build/phone-xhdpi-6144-dalvik-heap.mk)
+
 # Dynamic Partition
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
