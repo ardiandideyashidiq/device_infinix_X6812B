@@ -94,6 +94,26 @@ Fast triage rules:
 - **AVC denial inspection**:
   Query `logcat -d | grep avc | tail -n 25` or `logcat -d -b crash` rather than `dmesg`, which is restricted
   to root on user builds.
+- **RRO & Overlay live testing without reboot (`cmd overlay fabricate`)**:
+  Testing overlay resource edits (`isStatic="true"` or dynamic) instantly on device without a build or reboot:
+  ```bash
+  su -c "cmd overlay fabricate --target <target_pkg> --name <Name> <target_pkg>:<type>/<res_name> 0x12 <1|0>"
+  cmd overlay enable com.android.shell:<Name>
+  cmd overlay lookup <target_pkg> <target_pkg>:<type>/<res_name>
+  ```
+  Type `0x12` is boolean (`TYPE_INT_BOOLEAN`), `0x1c` is ARGB color (`TYPE_INT_COLOR_ARGB8`). Inspect full idmap
+  and target package mappings with `cmd overlay dump <package.target>`.
+- **`content://` vs `file:///` URIs in Android 16 testing**:
+  `am start -a android.intent.action.VIEW -d file:///...` is blocked by `FileUriExposedException` or ignored
+  by modern gallery/music players. Always index with MediaStore first:
+  ```bash
+  am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://<path>
+  content query --uri content://media/external/{video,audio}/media --projection _id
+  am start -a android.intent.action.VIEW -d content://media/external/{video,audio}/media/<id> -t <mime> -n <component>
+  ```
+  Note: `content query --projection` column names MUST be separated by spaces, not commas (commas throw
+  `IllegalArgumentException: Invalid column _id,_display_name`).
+
 
 
 `out/error.log` is **overwritten by every build attempt**; compare its mtime against the files you changed
@@ -237,6 +257,8 @@ done
   configs/audio/audio_policy_configuration.xml configs/media/media_codecs.xml configs/manifests/manifest.xml
 ../../../out/host/linux-x86/bin/xmllint --noout \
   --schema ../../../frameworks/av/media/libstagefright/xmlparser/media_codecs.xsd configs/media/media_codecs.xml
+../../../out/host/linux-x86/bin/xmllint --noout \
+  --schema ../../../frameworks/av/media/libmedia/xsd/media_profiles.xsd configs/media/media_profiles_V1_0.xml
 ```
 
 `ueventd*.rc` uses ueventd format, not init — `host_init_verifier` will reject it, so skip those paths.
@@ -523,6 +545,24 @@ Read the matching section before editing anything in that subsystem.
   −20.8 dB at step 8 (~9% linear amplitude). Use a balanced curve
   (`<point>1,-4500</point> <point>33,-2500</point> <point>66,-1100</point>`) and keep
   `ro.vendor.mtk_besloudness_support=1` in `vendor.prop` for DRC.
+- Transsion dual stereo / 2-in-1 speaker & loopback controls: Infinix Hot 11S features dual stereo speakers
+  (top earpiece acts as secondary speaker). `Tran_2N1_Speaker_Switch` in kernel is driven by the
+  `speaker_2n1_output` path in `audio_device.xml`. `audio.primary.mt6768.so` explicitly searches for
+  `speaker_2n1_output`. Transsion loopback is driven by `tran_loopback` and `tran_midtest_loopback_speaker`
+  (`Tran_LoopBack_Switch`).
+- `proprietary-files.txt` extracts `vendor/etc/audio_device.xml` directly from stock, so
+  `configs/audio/audio_device.xml` in this tree must match stock byte-for-byte to prevent duplicate install
+  rule collisions or stale RMX2020 divergence.
+- Live audio verification recipes:
+  1. Playback thread: `dumpsys media.audio_flinger | grep -B 2 -A 35 "Standby: no"`. Verify `Frames written`
+     increasing, `rate=1.000000`, 0 underruns, format (`AUDIO_FORMAT_PCM_16_BIT` / `32_BIT`), stereo.
+  2. Capture thread: `dumpsys media.audio_flinger | grep -A 25 "Input thread.*RECORD"` (type 3 `RECORD`,
+     `AUDIO_SOURCE_MIC`, `Frames read`).
+  3. Volume curves: `dumpsys media.audio_policy | grep -A 20 -- "-AUDIO_STREAM_MUSIC (id: 6)"` confirms active
+     `DEVICE_CATEGORY_SPEAKER` millibel attenuation points.
+  4. Kernel ALSA DAI: `su -c 'dmesg | grep -iE "mt6358-sound|mt6768-audio|afe-pcm"'` confirms sample rate,
+     stream direction, and volume ramping.
+
 
 ### Wi-Fi sharing / tethering
 
@@ -626,6 +666,9 @@ Read the matching section before editing anything in that subsystem.
 - 90 Hz toggle in Settings → Display: `<bool name="config_show_smooth_display">true</bool>` in
   `overlay/SettingsResTarget/res/values/config.xml`; verify with
   `cmd overlay dump com.android.settings.target`.
+- Peak and minimum refresh rate selectors (60 Hz / 90 Hz options):
+  `<bool name="config_show_peak_refresh_rate_switch">true</bool>` and
+  `<bool name="config_show_min_refresh_rate_switch">true</bool>` in `overlay/SettingsResTarget/res/values/config.xml`.
 - Keeping 90 Hz active without `min_refresh_rate=90` needs BOTH:
   1. `<integer name="config_defaultRefreshRate">0</integer>` in
      `overlay/FrameworksResTarget/res/values/config.xml` — AOSP's `60` makes
@@ -633,8 +676,8 @@ Read the matching section before editing anything in that subsystem.
   2. Do **not** set `ro.surface_flinger.enable_frame_rate_override=false` in `configs/props/vendor.prop`:
      `VoteSummary`/`RefreshRateSelector` then discard physical modes outside the `render` range and
      `Scheduler` sets `defaultTouchTimerValue=0`.
-- Live check: `dumpsys display | grep -E "mActiveMode|mActiveRenderFrameRate|mDesiredDisplayModeSpecs|PRIORITY_"`
-  and `dumpsys SurfaceFlinger | grep -E "renderRate=|activeMode=|displayManagerPolicy=|frameRateOverrideConfig="`.
+- Live check: `dumpsys display | grep -E "mBaseDisplayInfo|renderFrameRate|PRIORITY_USER_SETTING"`
+  and `dumpsys SurfaceFlinger | grep -A 5 -i "refresh-rate"`.
   Force with `settings put system min_refresh_rate 90`, revert with `settings delete system min_refresh_rate`.
 - Cutout and status bar: compare `config_mainBuiltInDisplayCutout` and `status_bar_height_portrait`
   (`FrameworksResTarget`) against stock RRO values, and check `rounded_corner_content_padding`,
@@ -780,6 +823,14 @@ dumpsys gfxinfo com.android.systemui | grep -E "Total frames|Janky frames:|perce
   when `screenrecord` and `Aperture` succeed: `AP_IPIMSG_ENC_SET_PARAM 15` must return `0`
   (`0x12a2c: movs r7, #0`) and `u4TSVC` (`0x11b42`) must be zeroed so `VPUD` does not inject a 9-byte
   `PrefixNALU` that `MPEG4Writer::parseAVCCodecSpecificData` rejects.
+- Recording container validation via `ffprobe`: After `screenrecord --verbose --time-limit 5 /data/local/tmp/test.mp4`,
+  verify container parameters on host: `ffprobe /tmp/test.mp4` must report progressive `h264 (High) (avc1)`, exact
+  native resolution (`1080x2460`, confirming `can-swap-width-height` prevented downscaling), expected bitrate
+  (~16–20 Mbps), and valid audio/video stream indices without timestamps gaps.
+- Video playback validation: Monitor `logcat -d | grep AidlBufferPool` during ExoPlayer/Glimpse video playback to
+  ensure bufferpool2 recycles buffers (`recycle/alloc` ratios match, 0 dropped frames, no `FatalError(DecodeError)`).
+  Check decoder size ranges and capabilities with `dumpsys media.player | grep -A 40 "Decoder \"c2.android.avc.decoder\""`.
+
 
 ## Dead-config sweeps
 
