@@ -31,7 +31,7 @@
         "50"
       ],
       "ResetOnInit": true,
-      "DefaultIndex": 0
+      "DefaultIndex": 2
     },
     {
       "Name": "GPUCustomBoostFreq",
@@ -49,10 +49,11 @@
       "Path": "/sys/kernel/ged/hal/dvfs_margin_value",
       "Values": [
         "10",
-        "25"
+        "25",
+        "50"
       ],
       "ResetOnInit": true,
-      "DefaultIndex": 0
+      "DefaultIndex": 2
     },
     {
       "Name": "TASchedtuneBoost",
@@ -146,7 +147,7 @@
         "10000000"
       ],
       "ResetOnInit": true,
-      "DefaultIndex": 3
+      "DefaultIndex": 2
     },
     {
       "Name": "CCIFreqMode",
@@ -419,7 +420,7 @@
       "PowerHint": "INTERACTION",
       "Node": "GEDMargin",
       "Duration": 0,
-      "Value": "25"
+      "Value": "50"
     },
     {
       "PowerHint": "INTERACTION",
@@ -528,6 +529,42 @@
       "Node": "DoubleTapToWake",
       "Duration": 0,
       "Value": "cc1"
+    },
+    {
+      "PowerHint": "LAUNCH",
+      "Node": "TASchedtuneBoost",
+      "Duration": 3000,
+      "Value": "40"
+    },
+    {
+      "PowerHint": "LAUNCH",
+      "Node": "CCIFreqMode",
+      "Duration": 3000,
+      "Value": "1"
+    },
+    {
+      "PowerHint": "LAUNCH",
+      "Node": "GEDMargin",
+      "Duration": 3000,
+      "Value": "50"
+    },
+    {
+      "PowerHint": "LAUNCH",
+      "Node": "GPUDVFSInterval",
+      "Duration": 3000,
+      "Value": "50"
+    },
+    {
+      "PowerHint": "LAUNCH",
+      "Node": "EASMigrateCost",
+      "Duration": 3000,
+      "Value": "200000"
+    },
+    {
+      "PowerHint": "INTERACTION",
+      "Node": "EASMigrateCost",
+      "Duration": 0,
+      "Value": "200000"
     }
   ],
   "AdpfConfig": [
