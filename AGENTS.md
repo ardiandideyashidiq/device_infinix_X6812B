@@ -76,6 +76,26 @@ Key paths:
    this hardware actually does.
 5. **Test live on the device** — only now, following "Live device testing".
 
+Fast triage rules:
+- **`adb root` vs `adb unroot` on user builds (`ro.build.type=user`)**:
+  Running `adb root` switches adbd to `u:r:su:s0`. On user builds, `allow domain su:binder { call transfer }`
+  is stripped by the `userdebug_or_eng()` macro. Binder transactions to vendor HALs (e.g. `mtk_hal_c2`,
+  Codec2, `scrcpy`) fail with `Check failed: transStatus.isOk() Codec2 AIDL service "default" does not have IConfigurable`
+  due to `avc: denied { transfer } for scontext=u:r:mtk_hal_c2:s0 tcontext=u:r:su:s0`. Run `adb unroot` to return
+  the client context to `u:r:shell:s0`.
+- **Dumpsys pipe denials (`FAILED_TRANSACTION`)**:
+  `dumpsys <service>` passes a pipe fd (`shell:fifo_file` or `dumpstate:fifo_file`) to the service's dump
+  method. HAL domains (such as `hal_power_default`) fail dumpsys with `FAILED_TRANSACTION` unless granted
+  `allow <domain> { dumpstate shell }:fifo_file write;`.
+- **Focused window check**:
+  Never assume an app's main activity is rendering. Always check `dumpsys window | grep -E "mCurrentFocus|mFocusedApp"`.
+  E.g. Settings may have `com.android.settings.intelligence/.search.SearchActivity` focused instead of
+  `com.android.settings/.homepage.SettingsHomepageActivity`.
+- **AVC denial inspection**:
+  Query `logcat -d | grep avc | tail -n 25` or `logcat -d -b crash` rather than `dmesg`, which is restricted
+  to root on user builds.
+
+
 `out/error.log` is **overwritten by every build attempt**; compare its mtime against the files you changed
 before trusting it. Each failing rule is quoted verbatim on a `Command:` line. Extract it with Python
 (not `sed` — the line contains quotes, `&&` chains and escaped newlines):
@@ -506,7 +526,13 @@ Read the matching section before editing anything in that subsystem.
 
 ### Wi-Fi sharing / tethering
 
+- On a 4.14 kernel, `bpf_map_update_elem` on array map key 1 fails with `EINVAL` because array map pre-allocation
+  rejects updates if the map is initialized in certain states. `BpfNetMaps.java` in `packages/modules/Connectivity`
+  aborts in `initBpfMaps()` when updating stats config map, leaving `sUidOwnerMap == null` while `sConfigurationMap != null`.
+  Netd firewall chains then reject all user app traffic (UID >= 10000), breaking all internet connectivity on Wi-Fi and LTE.
+  Fixed by `fuck-bpf` patch `packages/modules/Connectivity/0013-BpfNetMaps-do-not-abort-init-when-stats-config-update-fails.patch`.
 - On a 4.14 kernel without eBPF TC tethering forwarding, tethered clients connect but get no routing while
+
   BPF offload is active. Set `<bool name="config_tether_enable_bpf_offload">false</bool>` in
   `overlay/TetheringConfigTarget/res/values/config.xml` to force Netfilter/iptables MASQUERADE; verify with
   `dumpsys tethering` (`enableBpfOffload: false`).
@@ -668,23 +694,36 @@ dumpsys gfxinfo com.android.systemui | grep -E "Total frames|Janky frames:|perce
   array. Every `ResetOnInit` node needs an explicit `DefaultIndex`, otherwise libperfmgr logs
   `Failed to read Node[N]'s DefaultIndex, set to last index` and resets the node to its **last** value at
   HAL start (e.g. a permanent 10% `top-app` boost).
-- Schedutil: `up_rate_limit_us=500`, `down_rate_limit_us=5000` in `init.mt6768.power.rc`. The 1 ms default
-  down rate decays clocks between consecutive frame presentations; 5 ms holds them across VSYNC intervals.
-- Mali DVFS: `/sys/kernel/ged/hal/dvfs_margin_value=50`, `/sys/module/ged/parameters/gx_force_cpu_boost=1`,
-  `/sys/devices/platform/13040000.mali/dvfs_period=50`. Stock clamped the margin to 10 on
-  `sys.boot_completed=1`, starving the Mali-G52 at 299 MHz during 3D loads.
-- `configs/powerhint.json` profiles: `LAUNCH` sets `DRAMOppMin=0` (max memory bandwidth) and
-  `perfserv_ta_boost=100`/`perfserv_fg_boost=100` to migrate top-app threads to the A75 cluster during
-  window creation; `SUSTAINED_PERFORMANCE`/`FIXED_PERFORMANCE` set `GPUCustomBoostFreq=20/16`,
-  `DRAMOppMin=0`, `CCIFreqMode=1`, `PerfservFreq="1800000 -1 2000000 -1"`, `TABoostPerf=100`.
+- Schedutil and scheduler latency: `/system/etc/init/hw/init.rc` writes `sched_latency_ns 10000000` (10 ms)
+  during `on init`, overwriting earlier `early-init` vendor configurations. Enforce `sched_latency_ns=4000000`
+  (4 ms), `sched_min_granularity_ns=500000` (500 µs), `sched_wakeup_granularity_ns=2000000` (2 ms),
+  `sched_migration_cost_ns=200000` (200 µs), `up_rate_limit_us=500`, and `down_rate_limit_us=5000` in
+  `init.mt6768.power.rc` under `on property:sys.boot_completed=1`. The 1 ms default down rate decays clocks
+  between consecutive frame presentations; 5 ms holds them across VSYNC intervals.
+- Mali DVFS and GPU intervals: `/sys/kernel/ged/hal/dvfs_margin_value=50`,
+  `/sys/kernel/ged/hal/timer_base_dvfs_margin=798`, `/sys/module/ged/parameters/gx_force_cpu_boost=1`,
+  `/sys/devices/platform/13040000.mali/dvfs_period=50`. Stock clamped the margin to 10 on `sys.boot_completed=1`,
+  starving the Mali-G52 at 299 MHz during 3D and window transition loads. In `configs/powerhint.json`,
+  `GEDMargin` and `GPUDVFSInterval` must both declare `DefaultIndex: 2` (50 and 50 ms), and `EASMigrateCost`
+  must declare `DefaultIndex: 2` (200 µs); otherwise libperfmgr's `ResetOnInit` actively resets margin to 10
+  and period to 100 ms on every HAL boot.
+- `configs/powerhint.json` profiles: `LAUNCH` sets `DRAMOppMin=0` (max memory bandwidth), `CCIFreqMode=1`,
+  `GEDMargin=50`, `GPUDVFSInterval=50`, `EASMigrateCost=200000`, `PerfservFreq="1800000 -1 2000000 -1"`,
+  and `TASchedtuneBoost=40` + `perfserv_ta_boost=100` / `perfserv_fg_boost=100` to migrate top-app threads
+  to the A75 cluster during window creation. `INTERACTION` keeps `GEDMargin=50` and `EASMigrateCost=200000`.
+- App Freezer on 4.14: Kernel 4.14 lacks cgroup v2 freezer (`/sys/fs/cgroup/cgroup.freeze` does not exist).
+  If an app spins in freezer binder callback retry loops (`ActivityThread: Too many transaction errors, throttling freezer binder callback`),
+  check with `dumpsys activity freezer` and `ps -A`.
 - Boot DEX2OAT in `configs/props/system.prop`: `dalvik.vm.boot-dex2oat-cpu-set=0,1,2,3,4,5,6,7` and
   `dalvik.vm.boot-dex2oat-threads=8`. Without them ART's `odrefresh`/`artd` fall back to
   `0,1,2,3,4,5` and exclude both 2.0 GHz A75 cores during boot compilation.
 - `/sys/block/mmcblk0/queue/nr_requests=64` on boot completion shaves ~7 ms off cold starts. `/sys/block/sdc`
   (UFS) does not exist on this SoC.
-- `pm.dexopt.install=speed-profile` and `pm.dexopt.bg-dexopt=speed-profile` are what the tree ships; a
-  device left in `speed` by a manual `pm compile` measures a couple of points worse. Check
-  `dumpsys package com.android.settings | grep -A3 "Dexopt state"` before trusting a Settings number.
+- `pm.dexopt.install=speed-profile` and `pm.dexopt.bg-dexopt=speed-profile` are what the tree ships. On fresh
+  first boots, apps remain uncompiled in `[status=verify] [reason=first-boot]`, forcing the ART interpreter
+  to execute all bytecode and artificially skewing cold launch jank to 20–30%. Check
+  `dumpsys package <pkg> | grep 'arm64:'` before benchmarking; compile test targets with
+  `cmd package compile -m speed-profile -f <pkg>`.
 - SurfaceFlinger phase offsets in `configs/props/vendor.prop`, where
   `sfWorkDuration = vsyncDuration − sfOffset` and `appWorkDuration = vsyncDuration + (sfOffset − appOffset)`.
   90 Hz: `debug.sf.high_fps_late_sf_phase_offset_ns=0`, `high_fps_late_app_phase_offset_ns=-14000000`,
@@ -694,8 +733,11 @@ dumpsys gfxinfo com.android.systemui | grep -E "Total frames|Janky frames:|perce
   `ro.surface_flinger.vsync_sf_event_phase_offset_ns=0`,
   `ro.surface_flinger.vsync_event_phase_offset_ns=-4000000`. Keep
   `debug.sf.enable_gl_backpressure=0` — AOSP's `true` stalls the GPU queue on Mali-G52 and spikes launcher
-  jank to 23%. `debug.sf.hwc.min.duration` stays 5 ms (3 vs 5 is a wash). Remaining jank is app-bound: a
-  Perfetto trace shows Settings' `traversal` averaging 8.1 ms (max 92 ms).
+  jank to 23%. Keep `ro.surface_flinger.use_content_detection_for_refresh_rate=false` to prevent dynamic
+  60Hz/90Hz mode flips and phase resync drops during rapid user interaction. `debug.sf.hwc.min.duration`
+  stays 5 ms (3 vs 5 is a wash). Interactive scroll easily sustains <2% jank across all standard apps
+  (Settings Homepage 1.94%, QuickstepLauncher 0.37%, Contacts 0.57%, Clock 0.00%, Dialer 0.57%, Calculator 0.57%).
+
 
 ### Camera and media (TranssionCamera / Codec2)
 
