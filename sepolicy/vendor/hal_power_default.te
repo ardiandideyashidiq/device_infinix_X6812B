@@ -27,3 +27,6 @@ allow hal_power_default proc_cpufreq:file rw_file_perms;
 # Allow libperfmgr to control task turbo
 r_dir_file(hal_power_default, sysfs_task_turbo)
 allow hal_power_default sysfs_task_turbo:file w_file_perms;
+
+allow hal_power_default { dumpstate shell }:fifo_file write;
+
