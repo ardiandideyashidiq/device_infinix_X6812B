@@ -52,8 +52,6 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/lib64/libpowerhal.so',
     ): blob_fixup()
         .replace_needed('libtinyxml2.so', 'libtinyxml2-v34.so'),
-    'system/lib/libshowlogo.so': blob_fixup()
-        .add_needed('libshim_showlogo.so'),
     'vendor/lib/hw/audio.primary.mt6768.so': blob_fixup()
         .add_needed('libshim_audio.so')
         .replace_needed('libalsautils.so', 'libalsautils-mtk.so'),

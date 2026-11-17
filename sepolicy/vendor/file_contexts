@@ -44,3 +44,6 @@
 
 # Battery QMAX
 /sys/devices/platform/(odm/odm:tran_battery|tran_battery)/BATTERY_QMAX            u:object_r:sysfs_batteryinfo:s0
+
+/vendor/bin/kpoc_charger    u:object_r:charger_vendor_exec:s0
+/vendor/etc/init/kpoc_charger.rc    u:object_r:vendor_configs_file:s0

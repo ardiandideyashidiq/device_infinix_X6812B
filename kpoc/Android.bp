@@ -1,0 +1,52 @@
+cc_binary {
+    name: "kpoc_charger",
+    vendor: true,
+
+    srcs: [
+        "src/main.c",
+        "src/ctx.c",
+        "src/util.c",
+        "src/lifecycle.c",
+        "src/health.c",
+        "src/lights.c",
+        "src/anim.c",
+        "src/workers.c",
+        "src/alarm.c",
+        "src/logo_render.c",
+        "src/platform/ops_linux.c",
+        "src/platform/fb_logo.c",
+        "src/platform/health_aidl.cpp",
+        "src/platform/light_aidl.cpp",
+    ],
+
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-fstack-protector-strong",
+        "-fPIE",
+        "-D_GNU_SOURCE",
+        "-DKPOC_ANDROID",
+        "-DKPOC_OWN_LOGO",
+    ],
+    cppflags: ["-std=c++17"],
+    ldflags: ["-pie"],
+
+    shared_libs: [
+        "libc",
+        "libcutils",
+        "libutils",
+        "liblog",
+        "libz",
+        "libbase",
+        "libc++",
+        "libm",
+        "libdl",
+        "libhardware_legacy",
+        "libsuspend",
+        "libbinder_ndk",
+        "android.hardware.health-V1-ndk",
+        "android.hardware.light-V2-ndk",
+    ],
+
+    local_include_dirs: ["include"],
+}

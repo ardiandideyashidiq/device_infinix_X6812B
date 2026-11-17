@@ -1,0 +1,8 @@
+on charger
+    start kpoc_charger
+
+service kpoc_charger /vendor/bin/kpoc_charger
+    class charger
+    seclabel u:r:charger_vendor:s0
+    group system wakelock
+    capabilities BLOCK_SUSPEND SYS_ADMIN SYS_BOOT

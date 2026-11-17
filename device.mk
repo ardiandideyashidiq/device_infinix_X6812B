@@ -119,7 +119,11 @@ PRODUCT_PACKAGES += \
 
 # Charger
 PRODUCT_PACKAGES += \
+    kpoc_charger \
     libsuspend
+
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/kpoc/kpoc_charger.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/kpoc_charger.rc
 
 # Configstore
 PRODUCT_PACKAGES += \
@@ -409,7 +413,6 @@ PRODUCT_PACKAGES += \
     libui_shim \
     libprocessgroup_shim \
     libcrypto_shim \
-    libshim_showlogo \
     libshim_unwindstack
 
 # Bootloader

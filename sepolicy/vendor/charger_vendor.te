@@ -4,6 +4,30 @@ r_dir_file(charger_vendor, sysfs_leds)
 r_dir_file(charger_vendor, metadata_file)
 
 allow charger_vendor { sysfs_leds sysfs_batteryinfo sysfs_power_supply }:file rw_file_perms;
+allow charger_vendor sysfs_vbus:file r_file_perms;
+allow charger_vendor sysfs_boot_info:file r_file_perms;
+allow charger_vendor sysfs_power:file rw_file_perms;
+allow charger_vendor sysfs:dir r_dir_perms;
+allow charger_vendor proc_cmdline:file r_file_perms;
+
+allow charger_vendor block_device:dir search;
+allow charger_vendor logo_block_device:blk_file { read open };
+allow charger_vendor rtc_device:chr_file rw_file_perms;
+allow charger_vendor alarm_device:chr_file rw_file_perms;
+allow charger_vendor kmsg_device:chr_file { getattr w_file_perms };
+
+allow charger_vendor input_device:dir r_dir_perms;
+allow charger_vendor input_device:chr_file rw_file_perms;
 
 allow charger_vendor gpu_device:dir search;
-allow charger_vendor dri_device:chr_file rw_file_perms;
+allow charger_vendor graphics_device:dir search;
+allow charger_vendor graphics_device:chr_file rw_file_perms;
+
+allow charger_vendor self:capability { sys_nice sys_boot sys_admin };
+allow charger_vendor self:netlink_kobject_uevent_socket { create bind read setopt };
+
+allow charger_vendor metadata_file:dir { open read search write add_name remove_name getattr };
+allow charger_vendor metadata_file:file { getattr open read write append create unlink lock map };
+
+hal_client_domain(charger_vendor, hal_light)
+hal_client_domain(charger_vendor, hal_health)

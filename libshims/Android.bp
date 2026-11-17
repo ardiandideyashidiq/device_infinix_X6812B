@@ -11,22 +11,6 @@ cc_library_shared {
 }
 
 cc_library_shared {
-    name: "libshim_showlogo",
-    srcs: [
-        "libshim_showlogo.cpp",
-        "libshim_showlogo_metadata.cpp",
-    ],
-    shared_libs: [
-        "libbase",
-        "libbinder",
-        "libgui",
-        "libui",
-        "libutils",
-    ],
-    compile_multilib: "32",
-}
-
-cc_library_shared {
     name: "libshim_unwindstack",
     srcs: [
         "libshim_unwindstack.cpp",

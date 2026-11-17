@@ -61,6 +61,10 @@ Key paths:
     take down display and framework with no live recovery. Read "Live device testing" before any device write.
 12. **Significant resource tasks need the user's explicit permission first**: `extract-files.py` runs,
     full-image unpacks, vendor-tree regeneration. Ask; do not start one because it is convenient.
+    **After any `proprietary-files.txt` edit, an `extract-files.py` run is mandatory before the user builds
+    again** — ask for permission immediately, in the same turn as the edit, and do not hand back a tree whose
+    vendor dir disagrees with its manifest. Removing a line and never re-extracting leaves the blob installed
+    (or still missing), so the edit silently does nothing (see "Proprietary blobs").
 13. **Leave nothing behind.** Scratch objects, linked libraries and scripts go under `out/<scratch>/` and
     are deleted in the same turn. Report any artifact you created that outlives the task.
 
@@ -196,6 +200,21 @@ scripts/check-sepolicy.sh
 - **Dropping `;PRESIGNED` from a vendor/system_ext APK changes its SELinux domain** from
   `untrusted_app_*` to `platform_app` (`certificate: "platform"`), so verify
   `sepolicy/vendor/platform_app.te` carries the app's camera/sysfs grants.
+- **Moving a daemon to a different SELinux domain means copying the *complete* grant set, not the ones a
+  stack trace happens to name.** MTK splits one domain's policy across three files with the same basename —
+  `device/mediatek/sepolicy_vndr/base/{public,vendor,private}/kpoc_charger.te` — and diffing only one of
+  them leaves silent holes. Migrating `kpoc_charger` to a private `charger_vendor` domain cost six builds
+  this way: `sysfs_vbus` (charger detection read back `-1`), `rtc_device` + `alarm_device` (the daemon
+  powered off in a loop), and `logo_block_device` (the logo partition became unreadable, so the renderer
+  was never reached) each surfaced only as a generic failure one build at a time. Diff **all** the
+  upstream files for the domain before writing the replacement, and grant only what the code actually
+  opens — the rest are dead.
+- **A daemon that starts, logs nothing wrong, and does nothing is usually failing silently at an early
+  step.** Instrument the `init`/`open` path with one line per stage before changing any behaviour. On kpoc,
+  nine builds of renderer, framebuffer-plane and SELinux work were downstream of a `logo_read_file()`
+  that returned `-EACCES`; a single `anim_init: no logo partition readable` line ended the guessing.
+  Never write `goto fail` without logging which check failed and the error code — see the `c-patterns`
+  skill's "actionable status" rule.
 
 Context files validate against the built policy without a build:
 
@@ -295,8 +314,8 @@ bash /tmp/elfcheck.sh        # exit 0 = pass, 2 = fail
 - `allow_undefined_symbols: true` only silences `check_elf_file`; it does not fix a symbol that also fails
   to resolve at runtime. Never use it as the fix for a real gap.
 - `check_elf_file` stops at the first unresolved symbol and reports a batch, not the whole set — re-run it
-  after each fix and expect symbols from sibling shim objects (e.g. `libshim_showlogo_metadata.cpp`) to
-  surface once the first real one is gone.
+  after each fix and expect symbols from sibling shim objects (e.g. `libshim_audio.cpp`) to surface once
+  the first real one is gone.
 
 Vendor-tree scan for `DT_NEEDED` names that are never installed. Compare against
 `out/soong/installs-lineage_X6812B.mk`, which is authoritative — **do not** compare within one directory,
@@ -395,6 +414,12 @@ To test a signed overlay APK live: `aapt2 link` against
 
 Run all three after any change to `proprietary-files.txt`, `device.mk` or a regenerated vendor `Android.bp`.
 
+**Prerequisite for any `proprietary-files.txt` change: `extract-files.py` has already run to completion.**
+These three checks read the vendor tree and `installs-lineage_X6812B.mk`, so against an un-extracted manifest
+they validate the *previous* tree and pass misleadingly — a collision or SONAME problem you just introduced
+stays invisible until the build. The extract run needs the user's permission; ask for it in the same turn as
+the edit (hard rule 12).
+
 1. **Module-name collision** — soong resolves this last and it aborts the whole build.
    `hardware/lineage/compat` and `prebuilts/vndk` both define modules a vendor tree is likely to redefine.
    Match `name:` at low indentation; a bare `name:` regex also matches `filename:` keys and invents
@@ -445,6 +470,22 @@ version) or accept it, and say so before the build instead of discovering it hou
 ## Proprietary blobs
 
 `proprietary-files.txt` and `extract-files.py` are coupled — read both together.
+
+**The manifest is an input to `extract-files.py`, not a description of the vendor tree.** `vendor/infinix/X6812B`
+is generated: it is rebuilt from `proprietary-files.txt` on every extract run. So an edit to the manifest is
+inert until extract runs, and there is no partial-edit state that is safe to build:
+
+- **Removing a line does not remove the blob.** The file stays in the vendor tree from the previous run and
+  keeps being installed into `PRODUCT_PACKAGES`, so a module you thought you dropped still collides or still
+  ships.
+- **Adding a line does not add the blob.** The build fails with `<lib>.so does not exist` — the vendor `Android.bp`
+  is regenerated by extract, and soong reads that, not the manifest.
+- **Do not hand-edit `vendor/infinix/X6812B/Android.bp` to compensate.** The next extract overwrites it.
+
+Workflow: edit `proprietary-files.txt` → **ask the user's permission and run `extract-files.py` to completion** →
+`update-sha1sums.py` if you touched a pinned line → then the pre-build checklist below → then ask for the build.
+Never hand the user a `proprietary-files.txt` diff without the corresponding extract run: the build error it
+produces points at the vendor tree, not at your edit, and costs a full round-trip to diagnose.
 
 - **Pinning is driven by the `|hash` suffix, not the `- from` comment.** Any file with a hash is treated as
   pinned and restored from the vendor tree instead of re-extracted.
@@ -670,20 +711,46 @@ Read the matching section before editing anything in that subsystem.
 
 ### Offline charging (`kpoc_charger`)
 
-- `kpoc_charger` is a **32-bit ARM** executable (`system/bin/kpoc_charger`) requiring 32-bit
-  `system/lib/libshowlogo.so`. Extract both and set `compile_multilib: "32"` for `libshim_showlogo` in
-  `libshims/Android.bp`. Add `PRODUCT_PACKAGES += libsuspend`.
+The tree ships its **own** C implementation in `kpoc/` (cleanroom port of the stock daemon, built as a
+vendor `cc_binary`, installed to `/vendor/bin/kpoc_charger`, run as `charger_vendor`). Stock's
+`system/bin/kpoc_charger` + `libshowlogo.so` are **not** extracted any more.
+
+- **Drawing goes through `libminiui.so`, not raw framebuffer writes.** `kpoc/src/platform/fb_logo.c`
+  `dlopen`s `/vendor/lib64/libminiui.so` and uses `gr_init` / `gr_fb_data` / `gr_fb_width` /
+  `gr_fb_height` / `gr_flip`. Writing mmap'd fb0 planes directly and panning with
+  `FBIOPUT_VSCREENINFO` **does not reach the panel in charger mode** — the images never appear even though
+  every call returns success. `libminiui` handles the stride (`1080*4=4320`, not the kernel's padded
+  `4352`) internally; do not reintroduce manual plane arithmetic.
+- **Unblank before the first draw.** `kpoc/src/workers.c` opens `/dev/graphics/fb0` and issues
+  `FBIOBLANK(0)` on the first frame of a burst, then sets the backlight. Drawing first yields
+  `[DISP] primary_frame_cfg_input ... skip because primary dipslay is slept` and a black screen.
+- **The light HAL is usually not registered when kpoc starts** — both are queued from `on charger` with
+  undefined file order. `kpoc_aidl_light_set()` re-acquires the binder on every call for this reason; a
+  one-shot lookup at init leaves `g_light` NULL forever and every backlight write fails.
+- Required `charger_vendor` grants (see the SELinux section for the full-set rule):
+  `sysfs_vbus` (ADC charger voltage — read `-1` without it, so kpoc concludes there is no charger),
+  `rtc_device` + `alarm_device` (`alarm_wait_power_on()`, without which `alarm.c` calls
+  `exit_charger(4)` and the device poweroff-loops), `logo_block_device` (the logo partition; without it
+  `anim_init` aborts and the renderer never runs), `graphics_device`, `metadata_file`,
+  `hal_client_domain(hal_light)` and `hal_client_domain(hal_health)`.
+- **`/metadata/kpoc.log` is the daemon's log** (append-only, `CLOCK_BOOTTIME` timestamps, `fsync` per
+  line so a hard reset still leaves the run-up). Charger-mode failures leave nothing in pstore — read this
+  file after booting normally: `adb shell 'su -c "cat /metadata/kpoc.log"'`.
+- `kpoc_start_backlight()` takes level 20 only when the boot-mode tag reads KPOC **and** `ac == 0`;
+  otherwise 150. At full battery (`get_capacity: bat_level: 100`) the animation draws `idx_full` — a
+  single static full-screen logo, not an animation. That is correct behaviour, not a fault.
 - `init.mt6768.rc`'s `on charger` must start **`vendor.light-default`** (the AIDL light HAL name, not
   `vendor.light`) and chown the LED brightness nodes.
 - Remove any `service vendor.charger /system/bin/charger` from `init.mt6768.rc` — `kpoc_charger.rc`
   already defines `service kpoc_charger` in `class charger`.
-- 32-bit `libgui`/`libui` shim pitfalls:
+- `libshim_showlogo` and its two sources were **deleted** along with the stock blob — nothing links them.
+  Only if the stock 32-bit daemon is ever reinstated do these apply:
   1. Returning `sp<T>` from `extern "C"` trips `-Wreturn-type-c-linkage` under `-Werror`. Under ARM32
      AAPCS, `sp<T>` returns via an sret pointer in `r0`: use placement `new (out) sp<T>(...)` with
      `sp<T>* out` first.
   2. `SurfaceComposerClient.h` has `using gui::LayerMetadata;` inside `namespace android` — do not declare
-     `struct LayerMetadata` in the same TU; the `android::LayerMetadata` ctor/vtable symbols live in
-     `libshim_showlogo_metadata.cpp`.
+     `struct LayerMetadata` in the same TU; the `android::LayerMetadata` ctor/vtable symbols must live in a
+     separate `libshim_showlogo_metadata.cpp`.
   3. In `getActiveDisplayConfig`, Android 15 `ui::DisplayMode` has `id` at `+0` and `std::vector` at `+20`.
      Never cast `DisplayConfig*` to `ui::DisplayMode*` (stack corruption, 4-byte offset shift); copy
      `resolution`, `dpi`, `refreshRate` explicitly.
@@ -895,8 +962,8 @@ Before removing a `.rc` line, sepolicy path or blob:
 ## Essential commands
 
 ```bash
-# Regenerate vendor tree after ANY proprietary-files.txt change
-# (needs user permission; must finish before the build starts)
+# MANDATORY after ANY proprietary-files.txt change — the manifest is inert until this runs.
+# Ask the user's permission first (hard rule 12); it must finish before the build starts.
 ./extract-files.py /home/rd/Projects/android/custom-rom/x6812b/Infinix-Hot-11S-NFC-X6812B-30
 
 # Refresh pinned-blob sha1s (must leave `git diff` clean on second run)
