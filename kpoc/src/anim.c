@@ -1,7 +1,11 @@
-  
-                                                                   
-                             
-   
+/*
+ * anim.c - charging animation state machine.
+ *
+ * Picks the animation mode (wired, wireless, none) and drives the frame
+ * index that the draw worker renders. The frame index is what makes the
+ * fill bar move; the percentage itself comes from the health worker.
+ */
+
 #include "kpoc.h"
 
 void kpoc_set_draw_anim_mode(KpocCtx *ctx, int mode)

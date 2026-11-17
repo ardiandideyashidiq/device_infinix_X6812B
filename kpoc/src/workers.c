@@ -1,7 +1,12 @@
-  
-                                                                              
-                             
-   
+/*
+ * workers.c - the three long-running worker bodies.
+ *
+ * The uevent worker waits on the input device for charger changes, the draw
+ * worker pumps frames while the panel is on, and the key worker polls the
+ * power key for short press and long press. All three cooperate through the
+ * context mutexes; none of them owns the panel alone.
+ */
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif

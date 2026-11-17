@@ -1,11 +1,11 @@
-  
-                                                                    
-  
-                                                                             
-                                                                             
-                                                                              
-                        
-   
+/*
+ * kpoc_const.h - sysfs paths, tuning constants and debug mutex names.
+ *
+ * Paths here are the ones this kernel actually exposes, verified on device.
+ * Do not copy sibling trees' paths: /sys/class/power_supply/battery and the
+ * /proc/mtk_* nodes differ between MT6768, MT6781 and MT6877.
+ */
+
 #ifndef KPOC_CONST_H
 #define KPOC_CONST_H
 

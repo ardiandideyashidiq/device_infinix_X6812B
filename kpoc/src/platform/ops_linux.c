@@ -1,10 +1,11 @@
-  
-                                                                                
-                                                                           
-                                                                                
-                                                                            
-                             
-   
+/*
+ * ops_linux.c - KpocOps implementation for the real device.
+ *
+ * Provides logging, file and sysfs access, sleep, reboot, the health and
+ * light HAL calls, and the pthread wrappers the core depends on. Also owns
+ * the persistent log sink.
+ */
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif

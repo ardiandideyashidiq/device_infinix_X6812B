@@ -1,13 +1,14 @@
-  
-                                                                              
-  
-                                                                              
-                                                                             
-                                                                    
-  
-                                                                            
-                                                                            
-   
+/*
+ * logo_render.h - logo partition decoding and frame composition.
+ *
+ * The logo partition is a table of zlib-compressed bitmaps. A charging frame
+ * is composed from several of them: battery body, fill bar, digits, percent
+ * sign and optionally a wave overlay.
+ *
+ * Sprite indices are layout-specific; the values below are the ones present
+ * in this device's logo_a.
+ */
+
 #ifndef LOGO_RENDER_H
 #define LOGO_RENDER_H
 

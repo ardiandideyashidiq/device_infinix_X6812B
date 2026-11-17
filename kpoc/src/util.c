@@ -1,7 +1,11 @@
-  
-                                                        
-                                                                       
-   
+/*
+ * util.c - small helpers shared by the core.
+ *
+ * sysfs readers, boot-mode tag parsing, timeout comparisons and reboot
+ * command construction. Kept free of platform state so the core can be
+ * built off-device.
+ */
+
 #include "kpoc.h"
 #include <stdarg.h>
 #include <stdio.h>

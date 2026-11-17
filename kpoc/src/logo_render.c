@@ -1,7 +1,13 @@
-  
-                                                                    
-                                                                    
-   
+/*
+ * logo_render.c - decode logo_partition bitmaps and compose a charging frame.
+ *
+ * Frames are stacked from sprites rather than picked as a single index:
+ * the battery body, a green fill bar, the digits, the percent sign and an
+ * optional wave overlay. Sprite pixels are fully opaque, so digits carry a
+ * flat backdrop; logo_compose_keyed() colour-keys that backdrop out instead
+ * of blending it, which is what lets the number float over the fill.
+ */
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif

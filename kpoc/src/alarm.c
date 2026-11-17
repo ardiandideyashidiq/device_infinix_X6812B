@@ -1,9 +1,12 @@
-  
-                                         
-                                                                        
-                                                                       
-                                                                      
-   
+/*
+ * alarm.c - power-on alarm handling.
+ *
+ * Wakes the RTC when the user has a pending alarm so charger mode can boot
+ * the system in time. alarm_wait_power_on() also decides whether the daemon
+ * may power off, which is why a missing rtc/alarm grant shows up as a
+ * poweroff loop rather than an error.
+ */
+
 #include "kpoc.h"
 
 void kpoc_alarm_worker(KpocCtx *ctx)

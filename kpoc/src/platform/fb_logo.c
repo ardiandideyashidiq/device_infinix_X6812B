@@ -1,3 +1,12 @@
+/*
+ * fb_logo.c - direct fbdev writer for the charging screen.
+ *
+ * Two-plane double buffer on /dev/graphics/fb0. KDSETMODE(KD_GRAPHICS) on the
+ * VT is what hands the panel over: without it fbcon keeps ownership and every
+ * write lands on a surface nothing scans out, while every ioctl still reports
+ * success. The present callback copies one frame into the back plane and pans.
+ */
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif

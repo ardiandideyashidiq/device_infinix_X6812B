@@ -1,7 +1,11 @@
-  
-                                                                   
-                             
-   
+/*
+ * main.c - daemon entry point.
+ *
+ * Installs the signal handlers, initialises the context against the real
+ * platform ops and enters the lifecycle sequence. Nothing here should block:
+ * thread creation and device waits belong to lifecycle.c.
+ */
+
 #include "kpoc.h"
 
 int main(void)

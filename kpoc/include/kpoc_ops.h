@@ -1,9 +1,12 @@
-  
-                                                                      
-                                                                          
-                                   
-                             
-   
+/*
+ * kpoc_ops.h - the platform seam.
+ *
+ * KpocOps and KpocThreadOps are the only way the core reaches the outside
+ * world: time, files, logging, reboot, HAL calls, threads and IPC. The
+ * _real implementations live in src/platform/, so the core can be compiled
+ * and exercised without a device.
+ */
+
 #ifndef KPOC_OPS_H
 #define KPOC_OPS_H
 

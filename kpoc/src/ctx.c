@@ -1,7 +1,11 @@
-  
-                                              
-                                                                            
-   
+/*
+ * ctx.c - allocation and teardown of the shared daemon context.
+ *
+ * kpoc_ctx_init() wires the platform ops, creates the sync primitives and
+ * seeds the state machine. kpoc_ctx_deinit() must be safe on a partially
+ * initialised context, because failure paths call it early.
+ */
+
 #include "kpoc.h"
 #include <string.h>
 

@@ -1,7 +1,11 @@
-  
-                                                                      
-                                                             
-   
+/*
+ * kpoc.h - shared state and the public entry points of the charger daemon.
+ *
+ * Everything the daemon does is driven from a single KpocCtx: the uevent
+ * watcher, the frame pump, the power-key handler and the alarm worker all
+ * read and mutate it, so the mutexes in kpoc_const.h guard it.
+ */
+
 #ifndef KPOC_H
 #define KPOC_H
 

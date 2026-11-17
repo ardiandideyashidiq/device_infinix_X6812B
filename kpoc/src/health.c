@@ -1,7 +1,12 @@
-  
-                                                                  
-                             
-   
+/*
+ * health.c - battery and charger state.
+ *
+ * Reads capacity, voltage and charger presence through the health HAL with a
+ * sysfs fallback, and parses the Transsion battnotify node for charger type.
+ * On this device charge_full_design is scaled down by fuelgauged, so capacity
+ * comes from the battery's own capacity node instead.
+ */
+
 #include "kpoc.h"
 #include <limits.h>
 

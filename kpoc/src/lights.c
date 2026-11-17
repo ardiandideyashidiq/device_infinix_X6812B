@@ -1,7 +1,12 @@
-  
-                                                         
-                                                                     
-   
+/*
+ * lights.c - backlight and charging LED.
+ *
+ * Talks to the AIDL light HAL, falling back to the sysfs nodes when the HAL
+ * is not registered yet. At charger start the HAL is usually not up: both
+ * are queued from on charger with undefined file order, so the binder is
+ * re-acquired on every call rather than cached at init.
+ */
+
 #include "kpoc.h"
 
 int kpoc_lights_init(KpocCtx *ctx)

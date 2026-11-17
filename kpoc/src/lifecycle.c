@@ -1,7 +1,12 @@
-  
-                                                                           
-                                                              
-   
+/*
+ * lifecycle.c - thread bodies and the top-level daemon sequence.
+ *
+ * Owns the uevent, draw and key threads plus the decision of when to hand
+ * over to Android, power off, or exit for an alarm. The ordering here is
+ * load-bearing: the panel must be unblanked before the first draw, and the
+ * alarm worker must run before any exit path.
+ */
+
 #include "kpoc.h"
 
 #define KPOC_EV_KEY 1u
