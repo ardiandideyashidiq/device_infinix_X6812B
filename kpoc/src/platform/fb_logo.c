@@ -2,100 +2,85 @@
 #define _GNU_SOURCE
 #endif
 #include "logo_render.h"
+
+#include <errno.h>
+#include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <dlfcn.h>
-#include <stdint.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
-#define KPOC_MINIUI_LIB "/vendor/lib64/libminiui.so"
+#include <linux/fb.h>
+#include <linux/kd.h>
+
+#define KPOC_FB_PATH   "/dev/graphics/fb0"
+#define KPOC_VT_PATH   "/dev/tty0"
+#define KPOC_FB_PLANES 2u
 
 /*
- * Symbol resolution is reported as its own errno so the caller can tell a
- * missing library (ENOENT) from a library that lacks an entry point (ENOSYS).
+ * Two-plane double buffer on /dev/graphics/fb0. KDSETMODE(KD_GRAPHICS) on the
+ * VT is what hands the panel to us: without it the fbcon owns the display and
+ * every write lands on a surface nobody scans out, while every ioctl still
+ * reports success.
  */
 typedef struct {
-    int (*gr_init)(void);
-    void (*gr_exit)(void);
-    void *(*gr_fb_data)(void);
-    int (*gr_fb_width)(void);
-    int (*gr_fb_height)(void);
-    void (*gr_flip)(void);
-} MiniUI;
-
-typedef struct {
-    MiniUI api;
-    void *handle;
-    uint8_t *fb;
-    uint32_t width;
-    uint32_t height;
-    uint32_t stride;
+    int fd;
+    int vt_fd;
+    uint8_t *mem;
+    size_t map_len;
+    size_t plane_bytes;
+    uint32_t line_length;
+    uint32_t xres;
+    uint32_t yres;
+    uint32_t cur_plane;
 } FbCtx;
-
-static int resolve(MiniUI *api, void *handle)
-{
-    struct {
-        const char *name;
-        void *slot;
-        size_t size;
-    } syms[] = {
-        { "gr_init",      &api->gr_init,      sizeof(api->gr_init)      },
-        { "gr_exit",      &api->gr_exit,      sizeof(api->gr_exit)      },
-        { "gr_fb_data",   &api->gr_fb_data,   sizeof(api->gr_fb_data)   },
-        { "gr_fb_width",  &api->gr_fb_width,  sizeof(api->gr_fb_width)  },
-        { "gr_fb_height", &api->gr_fb_height, sizeof(api->gr_fb_height) },
-        { "gr_flip",      &api->gr_flip,      sizeof(api->gr_flip)      },
-    };
-    size_t i;
-    void *sym;
-
-    for (i = 0; i < sizeof(syms) / sizeof(syms[0]); ++i) {
-        dlerror();
-        sym = dlsym(handle, syms[i].name);
-        if (sym == NULL)
-            return -ENOSYS;
-        memcpy(syms[i].slot, &sym, syms[i].size);
-    }
-    return 0;
-}
 
 static int fb_present(void *opaque, uint32_t yoffset, const uint8_t *pixels,
                       uint32_t w, uint32_t h, uint32_t bytes_pp)
 {
     FbCtx *f = (FbCtx *)opaque;
-    const uint8_t *src;
-    uint8_t *dst;
+    struct fb_var_screeninfo vi;
+    uint8_t *plane;
     size_t row;
     uint32_t y;
 
-    /* The miniui surface is single-buffered; panning is handled by gr_flip. */
     (void)yoffset;
 
-    if (!f || !pixels || !f->fb)
+    if (!f || !pixels || !f->mem)
         return -EINVAL;
-    if (bytes_pp == 0 || w > f->width || h > f->height)
+    if (bytes_pp == 0 || w > f->xres || h > f->yres)
         return -EINVAL;
     if (w > SIZE_MAX / bytes_pp)
         return -EOVERFLOW;
     row = (size_t)w * bytes_pp;
-    if (row > f->stride)
+    if (row > f->line_length)
         return -EINVAL;
 
-    for (y = 0; y < h; ++y) {
-        dst = f->fb + (size_t)y * f->stride;
-        src = pixels + (size_t)y * row;
-        memcpy(dst, src, row);
-    }
-    f->api.gr_flip();
+    f->cur_plane = (f->cur_plane == 0u) ? 1u : 0u;
+    plane = f->mem + f->cur_plane * f->plane_bytes;
+    for (y = 0; y < h; ++y)
+        memcpy(plane + (size_t)y * f->line_length,
+               pixels + (size_t)y * row, row);
+
+    if (ioctl(f->fd, FBIOGET_VSCREENINFO, &vi) != 0)
+        return -errno;
+    vi.yoffset = f->cur_plane * f->yres;
+    vi.activate |= FB_ACTIVATE_FORCE | FB_ACTIVATE_NOW;
+    if (ioctl(f->fd, FBIOPUT_VSCREENINFO, &vi) != 0)
+        return -errno;
     return 0;
 }
 
 int kpoc_fb_open(LogoFB *out)
 {
     FbCtx *f = NULL;
-    uint8_t *fb;
-    int w, h, rc;
+    struct fb_var_screeninfo vi;
+    struct fb_fix_screeninfo fi;
+    size_t need;
+    int rc;
 
     if (!out)
         return -EINVAL;
@@ -104,58 +89,94 @@ int kpoc_fb_open(LogoFB *out)
     f = (FbCtx *)calloc(1, sizeof(*f));
     if (!f)
         return -ENOMEM;
+    f->fd = -1;
+    f->vt_fd = -1;
 
-    f->handle = dlopen(KPOC_MINIUI_LIB, RTLD_NOW);
-    if (!f->handle) {
-        rc = -ENOENT;
+    f->vt_fd = open(KPOC_VT_PATH, O_RDWR | O_CLOEXEC);
+    if (f->vt_fd >= 0 && ioctl(f->vt_fd, KDSETMODE, KD_GRAPHICS) != 0) {
+        rc = -errno;
         goto fail;
     }
 
-    rc = resolve(&f->api, f->handle);
-    if (rc != 0)
+    f->fd = open(KPOC_FB_PATH, O_RDWR | O_CLOEXEC);
+    if (f->fd < 0) {
+        rc = -errno;
         goto fail;
-
-    rc = f->api.gr_init();
-    if (rc != 0) {
-        rc = -EIO;
-        goto fail_init;
+    }
+    if (ioctl(f->fd, FBIOGET_FSCREENINFO, &fi) != 0 ||
+        ioctl(f->fd, FBIOGET_VSCREENINFO, &vi) != 0) {
+        rc = -errno;
+        goto fail;
     }
 
-    fb = (uint8_t *)f->api.gr_fb_data();
-    w = f->api.gr_fb_width();
-    h = f->api.gr_fb_height();
-    if (!fb || w <= 0 || h <= 0) {
-        rc = -ENODEV;
-        goto fail_init;
+    if (vi.bits_per_pixel != 32u || vi.grayscale != 0u) {
+        vi.bits_per_pixel = 32u;
+        vi.grayscale = 0u;
+        vi.transp.offset = 24u;
+        vi.transp.length = 8u;
+        vi.red.offset = 16u;
+        vi.red.length = 8u;
+        vi.green.offset = 8u;
+        vi.green.length = 8u;
+        vi.blue.offset = 0u;
+        vi.blue.length = 8u;
+        vi.activate = FB_ACTIVATE_NOW;
+        if (ioctl(f->fd, FBIOPUT_VSCREENINFO, &vi) != 0) {
+            rc = -errno;
+            goto fail;
+        }
     }
-    if ((size_t)w > SIZE_MAX / 4u) {
+
+    if (fi.line_length == 0 || vi.xres == 0 || vi.yres == 0) {
+        rc = -EINVAL;
+        goto fail;
+    }
+    f->line_length = fi.line_length;
+    f->xres = vi.xres;
+    f->yres = vi.yres;
+
+    if ((size_t)f->line_length > SIZE_MAX / f->yres) {
         rc = -EOVERFLOW;
-        goto fail_init;
+        goto fail;
     }
+    f->plane_bytes = (size_t)f->line_length * f->yres;
+    if (f->plane_bytes > SIZE_MAX / KPOC_FB_PLANES) {
+        rc = -EOVERFLOW;
+        goto fail;
+    }
+    need = f->plane_bytes * KPOC_FB_PLANES;
 
-    f->fb = fb;
-    f->width = (uint32_t)w;
-    f->height = (uint32_t)h;
-    f->stride = (uint32_t)w * 4u;
+    f->mem = (uint8_t *)mmap(NULL, need, PROT_READ | PROT_WRITE,
+                             MAP_SHARED, f->fd, 0);
+    if (f->mem == MAP_FAILED) {
+        f->mem = NULL;
+        rc = -errno;
+        goto fail;
+    }
+    f->map_len = need;
+    f->cur_plane = 1u;
 
-    out->width = f->width;
-    out->height = f->height;
-    out->yres_virtual = f->height;
-    out->line_length = f->stride;
+    out->width = f->xres;
+    out->height = f->yres;
+    out->yres_virtual = f->yres;
+    out->line_length = f->line_length;
     out->bpp = 32;
-    out->red_offset = 16;
-    out->green_offset = 8;
-    out->blue_offset = 0;
+    out->red_offset = vi.red.offset;
+    out->green_offset = vi.green.offset;
+    out->blue_offset = vi.blue.offset;
     out->present = fb_present;
     out->ctx = f;
     return 0;
 
-fail_init:
-    if (f->api.gr_exit)
-        f->api.gr_exit();
 fail:
-    if (f->handle)
-        dlclose(f->handle);
+    if (f->mem)
+        munmap(f->mem, f->map_len);
+    if (f->fd >= 0)
+        close(f->fd);
+    if (f->vt_fd >= 0) {
+        (void)ioctl(f->vt_fd, KDSETMODE, KD_TEXT);
+        close(f->vt_fd);
+    }
     free(f);
     return rc;
 }
@@ -167,10 +188,14 @@ void kpoc_fb_close(LogoFB *fb)
     if (!fb || !fb->ctx)
         return;
     f = (FbCtx *)fb->ctx;
-    if (f->api.gr_exit)
-        f->api.gr_exit();
-    if (f->handle)
-        dlclose(f->handle);
+    if (f->mem)
+        munmap(f->mem, f->map_len);
+    if (f->fd >= 0)
+        close(f->fd);
+    if (f->vt_fd >= 0) {
+        (void)ioctl(f->vt_fd, KDSETMODE, KD_TEXT);
+        close(f->vt_fd);
+    }
     free(f);
     fb->ctx = NULL;
     fb->present = NULL;

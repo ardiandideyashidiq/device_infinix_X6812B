@@ -70,7 +70,21 @@ int logo_render_init(LogoRenderer *r, const uint8_t *file_buf, size_t len,
     r->idx_low = LOGO_IDX_LOW_BATT;
     r->idx_full = LOGO_IDX_FULL;
     r->idx_low_red0 = LOGO_IDX_LOW_RED0;
-    r->idx_green0 = LOGO_IDX_GREEN0;
+    r->canvas_w = fb->width;
+    r->canvas_h = fb->height;
+    r->canvas = (uint32_t *)calloc((size_t)fb->width * fb->height,
+                                   sizeof(uint32_t));
+    r->packed = (uint8_t *)malloc((size_t)fb->width * fb->height *
+                                  (fb->bpp / 8u));
+    if (!r->canvas || !r->packed) {
+        free(r->canvas);
+        free(r->packed);
+        r->canvas = NULL;
+        r->packed = NULL;
+        free(r->offsets);
+        r->offsets = NULL;
+        return -ENOMEM;
+    }
     r->ready = 1;
     return 0;
 }
@@ -80,7 +94,11 @@ void logo_render_deinit(LogoRenderer *r)
     if (!r)
         return;
     free(r->offsets);
+    free(r->canvas);
+    free(r->packed);
     r->offsets = NULL;
+    r->canvas = NULL;
+    r->packed = NULL;
     r->ready = 0;
 }
 
@@ -146,9 +164,11 @@ int logo_decode(LogoRenderer *r, unsigned index, uint8_t **out,
 }
 
                                                                            
-static void convert_pixel(const uint8_t *src, uint8_t *dst, const LogoFB *fb)
+static void convert_pixel(uint32_t px_rgba, uint8_t *dst, const LogoFB *fb)
 {
-    uint8_t b = src[0], g = src[1], red = src[2];
+    uint8_t red = (uint8_t)(px_rgba & 0xffu);
+    uint8_t g   = (uint8_t)((px_rgba >> 8) & 0xffu);
+    uint8_t b   = (uint8_t)((px_rgba >> 16) & 0xffu);
 
     if (fb->bpp == 16) {
         uint16_t rgb565 = (uint16_t)(((red >> 3) << 11) |
@@ -188,9 +208,10 @@ int logo_present(LogoRenderer *r, unsigned index)
     }
     for (y = 0; y < h; ++y) {
         for (x = 0; x < w; ++x) {
-            const uint8_t *src = bgra + ((size_t)y * w + x) * LOGO_BPP;
+            const uint32_t *src =
+                (const uint32_t *)(bgra + ((size_t)y * w + x) * LOGO_BPP);
             uint8_t *dst = native + ((size_t)y * w + x) * bytes_pp;
-            convert_pixel(src, dst, r->fb);
+            convert_pixel(*src, dst, r->fb);
         }
     }
     rc = r->fb->present(r->fb->ctx, 0, native, w, h, bytes_pp);
@@ -206,6 +227,287 @@ void logo_set_version(LogoRenderer *r, int version)
     r->version = (version < 0 || version > 2) ? 0 : version;
 }
 
+int logo_compose_begin(LogoRenderer *r)
+{
+    if (!r || !r->ready || !r->canvas)
+        return -EINVAL;
+    memset(r->canvas, 0, (size_t)r->canvas_w * r->canvas_h *
+                         sizeof(uint32_t));
+    return 0;
+}
+
+static void blend_sprite(uint32_t *dst, const uint32_t *src,
+                         uint32_t cw, uint32_t ch,
+                         int32_t ox, int32_t oy, uint32_t w, uint32_t h)
+{
+    uint32_t y, x;
+
+    for (y = 0; y < h; ++y) {
+        int64_t ty = (int64_t)oy + y;
+        if (ty < 0 || ty >= (int64_t)ch)
+            continue;
+        for (x = 0; x < w; ++x) {
+            int64_t tx = (int64_t)ox + x;
+            uint32_t s, d, a, inv, r, g, b;
+            if (tx < 0 || tx >= (int64_t)cw)
+                continue;
+            s = src[(size_t)y * w + x];
+            a = (s >> 24) & 0xffu;
+            if (a == 0)
+                continue;
+            d = dst[(size_t)ty * cw + (size_t)tx];
+            if (a == 0xff) {
+                dst[(size_t)ty * cw + (size_t)tx] = s | 0xff000000u;
+                continue;
+            }
+            inv = 255u - a;
+            r = (((s & 0xffu) * a) + ((d & 0xffu) * inv)) / 255u;
+            g = ((((s >> 8) & 0xffu) * a) + (((d >> 8) & 0xffu) * inv)) / 255u;
+            b = ((((s >> 16) & 0xffu) * a) + (((d >> 16) & 0xffu) * inv)) / 255u;
+            dst[(size_t)ty * cw + (size_t)tx] =
+                0xff000000u | (b << 16) | (g << 8) | r;
+        }
+    }
+}
+
+int logo_compose_sprite(LogoRenderer *r, unsigned index, int32_t x, int32_t y)
+{
+    uint8_t *bgra = NULL;
+    uint32_t w = 0, h = 0;
+    int rc;
+
+    if (!r || !r->ready || !r->canvas)
+        return -EINVAL;
+    rc = logo_decode(r, index, &bgra, &w, &h);
+    if (rc != 0)
+        return rc;
+    blend_sprite(r->canvas, (const uint32_t *)bgra,
+                 r->canvas_w, r->canvas_h, x, y, w, h);
+    free(bgra);
+    return 0;
+}
+
+static int keyed_sprite(LogoRenderer *r, unsigned index, int32_t x, int32_t y)
+{
+    uint8_t *bgra = NULL;
+    uint32_t w = 0, h = 0, y2, x2;
+    const uint32_t *src;
+    uint32_t key;
+    int rc;
+
+    if (!r || !r->ready || !r->canvas)
+        return -EINVAL;
+    rc = logo_decode(r, index, &bgra, &w, &h);
+    if (rc != 0)
+        return rc;
+    if (w == 0 || h == 0) {
+        free(bgra);
+        return -EINVAL;
+    }
+    src = (const uint32_t *)bgra;
+    key = src[0] & 0x00ffffffu;
+
+    for (y2 = 0; y2 < h; ++y2) {
+        int64_t ty = (int64_t)y + y2;
+        if (ty < 0 || ty >= (int64_t)r->canvas_h)
+            continue;
+        for (x2 = 0; x2 < w; ++x2) {
+            int64_t tx = (int64_t)x + x2;
+            uint32_t s;
+            if (tx < 0 || tx >= (int64_t)r->canvas_w)
+                continue;
+            s = src[(size_t)y2 * w + x2];
+            if ((s & 0x00ffffffu) == key)
+                continue;
+            r->canvas[(size_t)ty * r->canvas_w + (size_t)tx] = s | 0xff000000u;
+        }
+    }
+    free(bgra);
+    return 0;
+}
+
+int logo_compose_keyed(LogoRenderer *r, unsigned index, int32_t x, int32_t y)
+{
+    return keyed_sprite(r, index, x, y);
+}
+
+int logo_compose_line(LogoRenderer *r, int32_t x0, int32_t y, int32_t x1)
+{
+    uint8_t *bgra = NULL;
+    uint32_t w = 0, h = 0;
+    int32_t x;
+
+    if (!r || !r->ready || !r->canvas)
+        return -EINVAL;
+    if (x1 <= x0)
+        return -EINVAL;
+    if (logo_decode(r, LOGO_IDX_LINE, &bgra, &w, &h) != 0)
+        return -EINVAL;
+    if (h == 0 || w == 0) {
+        free(bgra);
+        return -EINVAL;
+    }
+
+    {
+        const uint32_t *row = (const uint32_t *)(bgra +
+                              (size_t)(h - 1u) * w * LOGO_BPP);
+        int64_t ty = y;
+        if (ty >= 0 && ty < (int64_t)r->canvas_h) {
+            uint32_t *dst = r->canvas + (size_t)ty * r->canvas_w;
+            uint32_t sx = 0;
+            for (x = x0; x < x1; ++x, ++sx) {
+                uint32_t s, d, a, inv, cr, cg, cb;
+                if (x < 0 || x >= (int32_t)r->canvas_w)
+                    continue;
+                if (sx == w)
+                    sx = 0;
+                s = row[sx];
+                a = (s >> 24) & 0xffu;
+                if (a == 0)
+                    continue;
+                d = dst[x];
+                inv = 255u - a;
+                cr = (((s & 0xffu) * a) + ((d & 0xffu) * inv)) / 255u;
+                cg = ((((s >> 8) & 0xffu) * a) + (((d >> 8) & 0xffu) * inv)) / 255u;
+                cb = ((((s >> 16) & 0xffu) * a) + (((d >> 16) & 0xffu) * inv)) / 255u;
+                dst[x] = 0xff000000u | (cb << 16) | (cg << 8) | cr;
+            }
+        }
+    }
+    free(bgra);
+    return 0;
+}
+
+int logo_compose_flush(LogoRenderer *r)
+{
+    uint32_t y, x, bytes_pp;
+
+    if (!r || !r->ready || !r->fb || !r->fb->present || !r->packed)
+        return -EINVAL;
+    bytes_pp = r->fb->bpp / 8u;
+    if (bytes_pp == 0)
+        return -EINVAL;
+
+    for (y = 0; y < r->canvas_h; ++y) {
+        for (x = 0; x < r->canvas_w; ++x) {
+            uint32_t px = r->canvas[(size_t)y * r->canvas_w + x];
+            convert_pixel(px, r->packed +
+                          ((size_t)y * r->canvas_w + x) * bytes_pp, r->fb);
+        }
+    }
+    return r->fb->present(r->fb->ctx, 0, r->packed, r->canvas_w,
+                          r->canvas_h, bytes_pp);
+}
+
+static int draw_number(LogoRenderer *r, unsigned digit, unsigned pos,
+                       int32_t x0, int32_t ytop, unsigned base)
+{
+    int32_t x = x0 + (int32_t)(pos * LOGO_DIGIT_W);
+
+    if (digit > 9u)
+        return -EINVAL;
+    return logo_compose_keyed(r, base + digit, x, ytop);
+}
+
+static void draw_grids(LogoRenderer *r, unsigned grids)
+{
+    int32_t x0 = (int32_t)LOGO_AREA_X0;
+    int32_t x1 = (int32_t)LOGO_AREA_X1;
+    int32_t top = (int32_t)LOGO_AREA_Y0;
+    int32_t bottom = (int32_t)LOGO_AREA_Y1;
+    uint8_t *bgra = NULL;
+    uint32_t w = 0, h = 0;
+    const uint32_t *row;
+    int32_t y;
+
+    if (grids > LOGO_MAX_GRIDS)
+        grids = LOGO_MAX_GRIDS;
+    if (grids == 0)
+        return;
+    if (logo_decode(r, LOGO_IDX_LINE, &bgra, &w, &h) != 0)
+        return;
+    if (w == 0 || h == 0) {
+        free(bgra);
+        return;
+    }
+    row = (const uint32_t *)(bgra + (size_t)(h - 1u) * w * LOGO_BPP);
+
+    y = bottom - (int32_t)((uint64_t)grids *
+                           (uint64_t)(bottom - top) / LOGO_MAX_GRIDS);
+
+    for (; y < bottom; ++y) {
+        uint32_t *dst;
+        int32_t x;
+
+        if (y < 0 || y >= (int32_t)r->canvas_h)
+            continue;
+        dst = r->canvas + (size_t)y * r->canvas_w;
+        for (x = x0; x < x1 && x < (int32_t)r->canvas_w; ++x) {
+            uint32_t px;
+            if (x < 0)
+                continue;
+            px = row[(uint32_t)(x - x0) % w];
+            if ((px >> 24) == 0)
+                continue;
+            dst[x] = px | 0xff000000u;
+        }
+    }
+    free(bgra);
+}
+
+/* Draws the battery body, the capacity bar, the percentage digits and the
+ * wave overlay as separate sprites, matching how stock composes a frame.
+ */
+void logo_show_layout(LogoRenderer *r, unsigned cap)
+{
+    int64_t ytop;
+    unsigned grids;
+
+    if (!r || !r->ready)
+        return;
+    if (logo_compose_begin(r) != 0)
+        return;
+
+    if (cap > 100u)
+        cap = 100u;
+
+    if (cap >= 100u) {
+        (void)logo_compose_sprite(r, LOGO_IDX_GREEN_FULL, 0, 0);
+        (void)logo_compose_flush(r);
+        return;
+    }
+
+    (void)logo_compose_sprite(r, LOGO_IDX_BATTERY, 0, 0);
+
+    grids = (cap * LOGO_MAX_GRIDS) / 100u;
+    draw_grids(r, grids);
+
+    {
+        unsigned span = (cap >= 10u) ? (2u * LOGO_DIGIT_W + LOGO_PERCENT_W)
+                                     : (LOGO_DIGIT_W + LOGO_PERCENT_W);
+        int32_t xstart = (int32_t)(LOGO_AREA_X0 +
+                                   ((LOGO_AREA_X1 - LOGO_AREA_X0) - span) / 2u);
+        unsigned ndig = (cap >= 10u) ? 2u : 1u;
+
+        ytop = (int64_t)LOGO_DIGIT_TOP;
+        if (cap >= 10u) {
+            (void)draw_number(r, cap / 10u, 0, xstart, (int32_t)ytop, LOGO_IDX_DIGIT0);
+            (void)draw_number(r, cap % 10u, 1, xstart, (int32_t)ytop, LOGO_IDX_DIGIT0);
+        } else {
+            (void)draw_number(r, cap, 0, xstart, (int32_t)ytop, LOGO_IDX_DIGIT0);
+        }
+        (void)logo_compose_keyed(r, LOGO_IDX_PERCENT,
+                                 xstart + (int32_t)(ndig * LOGO_DIGIT_W),
+                                 (int32_t)ytop);
+    }
+
+    {
+        int rc = logo_compose_flush(r);
+        logo_last_present_rc = rc;
+        logo_last_present_idx = LOGO_IDX_BATTERY;
+    }
+}
+
 void logo_show_capacity(LogoRenderer *r, unsigned cap)
 {
     unsigned idx;
@@ -217,7 +519,7 @@ void logo_show_capacity(LogoRenderer *r, unsigned cap)
     else if (cap <= 10u)
         idx = r->idx_low_red0 + cap;
     else
-        idx = r->idx_green0 + (cap - 10u) * 10u / 90u;
+        idx = LOGO_IDX_BATTERY;
     if (idx > LOGO_IDX_LAST)
         idx = LOGO_IDX_LAST;
     {

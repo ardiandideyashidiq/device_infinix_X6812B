@@ -40,7 +40,6 @@ cc_binary {
         "libbase",
         "libc++",
         "libm",
-        "libdl",
         "libhardware_legacy",
         "libsuspend",
         "libbinder_ndk",

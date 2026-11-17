@@ -715,12 +715,61 @@ The tree ships its **own** C implementation in `kpoc/` (cleanroom port of the st
 vendor `cc_binary`, installed to `/vendor/bin/kpoc_charger`, run as `charger_vendor`). Stock's
 `system/bin/kpoc_charger` + `libshowlogo.so` are **not** extracted any more.
 
-- **Drawing goes through `libminiui.so`, not raw framebuffer writes.** `kpoc/src/platform/fb_logo.c`
-  `dlopen`s `/vendor/lib64/libminiui.so` and uses `gr_init` / `gr_fb_data` / `gr_fb_width` /
-  `gr_fb_height` / `gr_flip`. Writing mmap'd fb0 planes directly and panning with
-  `FBIOPUT_VSCREENINFO` **does not reach the panel in charger mode** — the images never appear even though
-  every call returns success. `libminiui` handles the stride (`1080*4=4320`, not the kernel's padded
-  `4352`) internally; do not reintroduce manual plane arithmetic.
+- **Drawing writes the fb0 planes directly; the VT must be put in graphics mode first.**
+  `kpoc/src/platform/fb_logo.c` does `open("/dev/tty0")` + `ioctl(KDSETMODE, KD_GRAPHICS)`, then opens
+  `/dev/graphics/fb0`, reads geometry with `FBIOGET_{FSCREENINFO,VSCREENINFO}`, `mmap`s `2 * line_length *
+  yres`, and pans with `yoffset = cur_plane * yres` alternating 0↔1. Without the `KDSETMODE` call fbcon keeps
+  ownership of the panel: every write lands on a surface nothing scans out and **every syscall still returns
+  success**, so the screen stays black with a clean log.
+- **The capacity screen is composed from sprites, never picked as one index.** `logo_show_layout()` in
+  `kpoc/src/logo_render.c` stacks the battery body (`idx 35`), the green fill bar, the two digits
+  (`idx 4..13`), the `%` (`idx 14`), and for `cap < 91` a wave frame (`idx 15..24`) onto one canvas and
+  flushes once. `logo_show_capacity()` only picks a single full-screen index and is **not** what a real
+  percentage render looks like. `idx 37..48` are full-screen bitmaps — rendering one of those is why the
+  panel showed a static "Super Charge" logo instead of `94%`.
+- **Logo sprites are fully opaque rectangles, and stock does no alpha blending at all** — `fill_point_buffer`
+  in `libshowlogo.so` is a plain `*dst = src`. Consequences that already cost builds:
+  - There are **two digit sets**: `idx 4..13` + `idx 14` have a `000000` background, `idx 49..58` +
+    `idx 59` have a `010301` (near-black green) background. Neither is transparent on disk, so a naive blit
+    punches a dark box through the green fill — `010301` is dark enough that the eye reads it as a hole.
+  - `logo_compose_keyed()` solves this by colour-keying: it samples the sprite's top-left pixel as the
+    background colour and skips every pixel that matches, so the digits and `%` float on whatever is
+    behind them. Use it for any sprite that carries a solid backdrop. Do **not** use the green set —
+    keying the black set is correct at every capacity.
+  - Keying assumes a **uniform flat** background across the whole sprite. Verify with a byte histogram
+    before applying it to a new index; a gradient or dithered backdrop will leave fringes.
+- **Centre the percentage horizontally** in the fill box at every capacity: the digit block
+  (`ndig*42 + 48` wide) is centred in `x 427..651`. Rounding a numeric field off-centre is what made earlier
+  renders look broken. Vertically it is **not** centred — see the `dimen[5]..dimen[7]` rule above.
+- **Pixel byte order in the logo partition is little-endian `0xAABBGGRR`**: byte0 = R, byte1 = G,
+  byte2 = B, byte3 = alpha. Verified against a known green pixel `4e b6 25 ff`. Swapping R and B yields a
+  plausible-looking but wrong-coloured frame, so check this before touching `convert_pixel()`.
+- **Fill geometry comes from `init_charging_animation_ui_dimension()`**, block `1080*2460`. This panel hits
+  the `TECNO` branch, not `INFINIX`, because `is_INFINIX()` does a case-sensitive
+  `memcmp(ro.product.system.brand, "Infinix", 8)` and the property reads `infinix`. The two branches differ
+  (`TECNO` number area `x 426..654, y 1033..1411`; `INFINIX` `x 427..651, y 1054..1397`). We use the TECNO
+  values for the fill box because that is the branch stock actually takes on this build.
+- **`dimen[0..3]` is the battery interior (fill box), NOT the digit position.** Those four fields are what
+  `fill_animation_line` uses: x from `dimen[0]` to `dimen[2]`, y from its argument down to `dimen[3]`.
+- **The percentage is drawn ABOVE the battery body, not inside it.** `fill_animation_number` takes its
+  vertical placement from `dimen[5]..dimen[7]` (`0x382..0x3be` = y 898..958 on this panel), which the
+  initializer writes separately from the fill box. The battery artwork (`idx 35`) spans y 1021..1662, so
+  stock's digits sit entirely above it with a ~63 px gap. Deriving the digit y from `dimen[1]`/`dimen[3]`
+  puts the number inside the icon and contradicts stock — that mistake cost a build.
+- **`fill_animation_line` fills a 1px row from `dimen[0]` to `dimen[2]`, repeated from its y argument down
+  to `dimen[3]`.** Decode `idx 36` (14x16, solid `4eb625`) **once per frame** and tile its last row —
+  calling a decode per line costs 340 zlib decompressions per frame.
+- **Take the stride from `FSCREENINFO.line_length` (4352 here), never `width * 4` (4320).** The two differ by
+  the chroma padding; using the computed width shifts every row and shows garbled or blank output.
+- **Use two planes and `yoffset = yres * plane`, not a `yres_virtual / 3` split.** The kernel reports
+  `yres_virtual = 7392` while `3 * yres = 7380`, so a /3 split skews each plane by 4 rows (17,408 bytes).
+  The daemon mmaps exactly two planes and ignores `yres_virtual` entirely.
+- `libminiui.so` is **not used any more**. It was the earlier backend; it additionally ran `gglInit` and
+  `gr_init_font`, allocated its own back-buffer, and returned that buffer from `gr_fb_data`, costing two
+  copies per frame. Nothing links or `dlopen`s it now.
+- Render-host-side before flashing: a small probe that calls `logo_show_layout()` for a few capacities and
+  dumps `R.canvas` as raw RGB proves the composition without a build/reboot cycle. Convert to PNG on the
+  host and look at it — this caught both a wrong fill height and a wave frame covering the last digit.
 - **Unblank before the first draw.** `kpoc/src/workers.c` opens `/dev/graphics/fb0` and issues
   `FBIOBLANK(0)` on the first frame of a burst, then sets the backlight. Drawing first yields
   `[DISP] primary_frame_cfg_input ... skip because primary dipslay is slept` and a black screen.

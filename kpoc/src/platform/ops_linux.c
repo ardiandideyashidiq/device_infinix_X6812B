@@ -280,11 +280,11 @@ static void op_anim_init(void)
     rc = kpoc_fb_open(&g_logo_fb);
     if (rc != 0) {
         platform_log(3, "<3>charger: anim_init: kpoc_fb_open failed\n");
-        platform_log(3, rc == -ENOENT  ? "<3>charger:   dlopen libminiui\n"  :
-                         rc == -ENOSYS  ? "<3>charger:   dlsym missing symbol\n" :
-                         rc == -ENODEV  ? "<3>charger:   gr_init no framebuffer\n" :
-                         rc == -EOVERFLOW ? "<3>charger:   stride overflow\n" :
-                                          "<3>charger:   gr_init failed\n");
+        platform_log(3, rc == -ENOENT    ? "<3>charger:   no fb0 or tty0\n"     :
+                         rc == -EINVAL    ? "<3>charger:   bad fb geometry\n"   :
+                         rc == -EOVERFLOW ? "<3>charger:   size overflow\n"     :
+                         rc == -ENOMEM    ? "<3>charger:   out of memory\n"     :
+                                            "<3>charger:   fb0/tty0 setup failed\n");
         goto fail;
     }
     rc = logo_render_init(&g_logo, g_logo_buf, g_logo_len, &g_logo_fb);
@@ -303,7 +303,7 @@ fail:
 
 static void op_anim_ver(int v) { if (g_logo_ready) logo_set_version(&g_logo, v); }
 static void op_anim_mode(int m) { (void)m;                                           }
-static void op_anim_cap(uint32_t c) { if (g_logo_ready) logo_show_capacity(&g_logo, c); }
+static void op_anim_cap(uint32_t c) { if (g_logo_ready) logo_show_layout(&g_logo, c); }
 static void op_anim_ov(void) { if (g_logo_ready) logo_show_ov(&g_logo); }
 static void op_anim_low(void) { if (g_logo_ready) logo_show_low(&g_logo); }
 #elif defined(KPOC_ANDROID)

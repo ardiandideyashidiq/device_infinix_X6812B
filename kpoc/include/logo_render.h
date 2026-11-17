@@ -21,9 +21,19 @@
 #define LOGO_IDX_DIGIT0        4u
 #define LOGO_IDX_PERCENT      14u
 #define LOGO_IDX_WAVE0        15u
-#define LOGO_IDX_LOW_RED0     25u
-#define LOGO_IDX_GREEN0       39u
+#define LOGO_IDX_LOW_RED0     26u
+#define LOGO_IDX_BATTERY      35u
+#define LOGO_IDX_LINE         36u
+#define LOGO_IDX_GREEN_FULL   37u
 #define LOGO_IDX_LAST         60u
+
+                                                                         
+#define LOGO_AREA_X0        427u
+#define LOGO_AREA_Y0       1054u
+#define LOGO_AREA_X1        651u
+#define LOGO_AREA_Y1       1397u
+#define LOGO_DIGIT_TOP      898u
+#define LOGO_MAX_GRIDS       10u
 
 extern int logo_last_present_rc;
 extern unsigned logo_last_present_idx;
@@ -65,13 +75,18 @@ typedef struct LogoRenderer {
     int             ready;
     unsigned        wave_frame;
 
-                                                                               
+                                                                              
                                                                  
     unsigned idx_ov;
     unsigned idx_low;
     unsigned idx_full;
     unsigned idx_low_red0;
-    unsigned idx_green0;
+
+                                                                                
+    uint32_t       *canvas;
+    uint32_t        canvas_w;
+    uint32_t        canvas_h;
+    uint8_t        *packed;
 } LogoRenderer;
 
 #ifdef __cplusplus
@@ -92,8 +107,16 @@ int  logo_decode(LogoRenderer *r, unsigned index, uint8_t **out,
                                                                     
 int  logo_present(LogoRenderer *r, unsigned index);
 
+                                                                                  
+int  logo_compose_begin(LogoRenderer *r);
+int  logo_compose_sprite(LogoRenderer *r, unsigned index, int32_t x, int32_t y);
+int  logo_compose_keyed(LogoRenderer *r, unsigned index, int32_t x, int32_t y);
+int  logo_compose_line(LogoRenderer *r, int32_t x0, int32_t y, int32_t x1);
+int  logo_compose_flush(LogoRenderer *r);
+
                                                              
 void logo_set_version(LogoRenderer *r, int version);
+void logo_show_layout(LogoRenderer *r, unsigned capacity);
 void logo_show_capacity(LogoRenderer *r, unsigned capacity);
 void logo_show_ov(LogoRenderer *r);
 void logo_show_low(LogoRenderer *r);
