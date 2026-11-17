@@ -770,6 +770,11 @@ vendor `cc_binary`, installed to `/vendor/bin/kpoc_charger`, run as `charger_ven
 - Render-host-side before flashing: a small probe that calls `logo_show_layout()` for a few capacities and
   dumps `R.canvas` as raw RGB proves the composition without a build/reboot cycle. Convert to PNG on the
   host and look at it — this caught both a wrong fill height and a wave frame covering the last digit.
+- **`kpoc/tests/` runs on the host with plain gcc**, no bionic and no device, because the core reaches the
+  outside world only through `KpocOps`/`KpocThreadOps`. `./tests/run-tests.sh` builds and runs it.
+  Assert on observable effects (destroy calls, log text, values passed to the HAL seam) — not on call
+  counts alone. Both the "success" and "no light service" paths log exactly once, so a bare log counter
+  cannot tell them apart and lets an inverted error check pass.
 - **Unblank before the first draw.** `kpoc/src/workers.c` opens `/dev/graphics/fb0` and issues
   `FBIOBLANK(0)` on the first frame of a burst, then sets the backlight. Drawing first yields
   `[DISP] primary_frame_cfg_input ... skip because primary dipslay is slept` and a black screen.
