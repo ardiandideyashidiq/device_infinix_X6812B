@@ -129,6 +129,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     disable_configstore
 
+# Fingerprint
+PRODUCT_PACKAGES += \
+    android.hardware.biometrics.fingerprint@2.1-service
+
 # Display
 PRODUCT_PACKAGES += \
     android.hardware.graphics.composer@2.1-resources \
@@ -399,6 +403,7 @@ PRODUCT_PACKAGES += \
 
 # VNDK
 PRODUCT_PACKAGES += \
+    libhidlbase-v32 \
     libutils-v32 \
     libui-v34 \
     libtinyxml2-v34 \

@@ -24,6 +24,15 @@
             <instance>default</instance>
         </interface>
     </hal>
+    <!-- Fingerprint -->
+    <hal format="hidl" optional="true">
+        <name>vendor.silead.hardware.fingerprintext</name>
+        <version>1.0</version>
+        <interface>
+            <name>ISileadFingerprint</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
     <!-- Trancam -->
     <hal format="hidl" optional="true">
         <name>vendor.transsion.hardware.trancam.trancamserver</name>
