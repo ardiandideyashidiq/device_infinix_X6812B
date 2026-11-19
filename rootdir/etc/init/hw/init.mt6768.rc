@@ -142,6 +142,10 @@ on late-fs
     mount_all /vendor/etc/fstab.mt6768 --late
 
 on post-fs-data
+    mkdir /data/vendor/silead 0770 system system
+    mkdir /data/silead 0770 system system
+    mkdir /data/silead/fp 0770 system system
+    mkdir /data/system/silead 0770 system system
     mkdir /data/vendor/arcsoft 0777 system system
     mkdir /data/vendor/multicam 0777 system system
     mkdir /data/vendor/multicam/dualcam 0777 system system

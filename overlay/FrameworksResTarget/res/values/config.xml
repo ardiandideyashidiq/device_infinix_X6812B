@@ -132,4 +132,24 @@
     <!-- Whether WM DisplayContent supports high performance transitions -->
     <bool name="config_deviceSupportsHighPerfTransitions">false</bool>
 
+    <!-- Indicates whether device has a power button fingerprint sensor. -->
+    <bool name="config_is_powerbutton_fps">true</bool>
+
+    <!-- An array of arrays of side fingerprint sensor properties relative to each display. -->
+    <array name="config_sfps_sensor_props" translatable="false">
+        <item>@array/config_sfps_sensor_props_0</item>
+    </array>
+
+    <array name="config_sfps_sensor_props_0" translatable="false">
+        <item>local:0</item>
+        <item>1080</item>
+        <item>1056</item>
+        <item>210</item>
+    </array>
+
+    <!-- List of biometric sensors on the device, in decreasing strength. -->
+    <string-array name="config_biometric_sensors">
+        <item>0:2:15</item>
+    </string-array>
+
 </resources>
