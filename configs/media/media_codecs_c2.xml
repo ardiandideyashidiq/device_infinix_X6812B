@@ -66,7 +66,6 @@
             <Limit name="size" min="128x128" max="2560x1440" />
             <Limit name="alignment" value="32x16" />
             <Limit name="block-size" value="16x16" />
-            <Feature name="can-swap-width-height"/>
             <Limit name="concurrent-instances" max="10" />
             <Limit name="performance-point-1920x1088" value="30" />
         </MediaCodec>
