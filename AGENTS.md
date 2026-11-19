@@ -56,6 +56,9 @@ Key paths:
 10. **Validate host-side before the device sees it.** Manifest, property, `file_contexts`, `.rc`, ELF and
     XML edits all have a standalone validator below. `xmllint --noout` proves well-formed XML, not a
     bootable manifest.
+    **Run the whole pre-build checklist (G1–G5), not only the gate that failed last time.** These failures
+    arrive in sequence — duplicate install, then a name collision, then ELF, then VINTF — so fixing one and
+    rebuilding "to see" costs a round-trip per gate. A subsystem is not ready to build until all five pass.
 11. **Never overwrite a working system file wholesale, and never restart the framework to "test" something.**
     Stage with `mount --bind`, reboot to apply. `ctl.restart hwservicemanager` / `zygote` / `stop; start`
     take down display and framework with no live recovery. Read "Live device testing" before any device write.
@@ -233,32 +236,14 @@ POLICY="../../../out/target/product/X6812B/vendor/etc/selinux/precompiled_sepoli
 
 ### VINTF manifest and matrix
 
-```bash
-# 1. Re-assemble the vendor manifest and stage it
-BOARD_SEPOLICY_VERS="202404" PRODUCT_ENFORCE_VINTF_MANIFEST=true \
-  ../../../out/host/linux-x86/bin/assemble_vintf \
-  -i configs/manifests/manifest.xml \
-  -o ../../../out/soong/.intermediates/system/libhidl/vintfdata/vendor_manifest.xml/android_arm64_armv8-2a-dotprod_cortex-a75/manifest.xml
-cp -f -d ../../../out/soong/.intermediates/system/libhidl/vintfdata/vendor_manifest.xml/android_arm64_armv8-2a-dotprod_cortex-a75/manifest.xml \
-  ../../../out/target/product/X6812B/vendor/etc/vintf/manifest.xml
+**Both `checkvintf` calls and the matrix re-stage live in G5 of the pre-build checklist — that is the
+canonical recipe; do not duplicate it here.**
 
-# 2. Manifest vs installed fragments — catches conflicting FqInstances
-../../../out/host/linux-x86/bin/checkvintf --check-one \
-  --dirmap /vendor:../../../out/target/product/X6812B/vendor \
-  --dirmap /apex:../../../out/target/product/X6812B/obj/PACKAGING/check_vintf_all_intermediates/apex \
-  --property ro.boot.product.vendor.sku=
-
-# 3. Full framework/device compatibility matrix — prints COMPATIBLE on success
-../../../out/host/linux-x86/bin/checkvintf --check-compat \
-  --dirmap /system:../../../out/target/product/X6812B/system \
-  --dirmap /vendor:../../../out/target/product/X6812B/vendor \
-  --dirmap /odm:../../../out/target/product/X6812B/vendor/odm \
-  --dirmap /product:../../../out/target/product/X6812B/product \
-  --dirmap /system_ext:../../../out/target/product/X6812B/system_ext \
-  --dirmap /apex:../../../out/target/product/X6812B/obj/PACKAGING/check_vintf_all_intermediates/apex \
-  --property ro.product.first_api_level=30 \
-  --property ro.boot.product.hardware.sku= --property ro.boot.product.vendor.sku=
-```
+- `assemble_vintf` on `manifest.xml` alone proves it is well-formed and merges cleanly. It does **not** prove
+  the framework accepts it — only `--check-compat` does.
+- A stale `out/target/product/X6812B/system/etc/vintf/compatibility_matrix.device.xml` survives your source
+  edit, so re-stage it (G5) before trusting either check. This is the same staleness trap as
+  `out/error.log` and `installs-lineage_X6812B.mk`.
 
 After switching a HAL version, delete any stale `android.hardware.*@*` fragment left under
 `out/target/product/X6812B/vendor/etc/vintf/manifest/` before `--check-one` — the other version otherwise
@@ -410,47 +395,254 @@ To test a signed overlay APK live: `aapt2 link` against
 `WifiResTarget`/`TetheringConfigTarget` from `/apex/`), `zipalign -f 4`, `apksigner sign` with
 `vendor/lineage-priv/keys/releasekey.{x509.pem,pk8}`, then follow the bind-mount recipe below.
 
-### Pre-build checklist (under a minute, before asking for a build)
+### Pre-build checklist — run ALL gates before asking for a build
 
-Run all three after any change to `proprietary-files.txt`, `device.mk` or a regenerated vendor `Android.bp`.
+**Any change to `proprietary-files.txt`, `extract-files.py`, `device.mk`, `configs/manifests/*` or a
+regenerated vendor `Android.bp` requires the whole list, not the gate that failed last time.** Each of these
+has already cost multiple build round-trips by being discovered one at a time:
+
+| # | Gate | Failure it catches | Build message |
+|:--|:--|:--|:--|
+| G1 | extract has run | manifest inert, stale vendor tree | `<lib>.so does not exist`, phantom retries |
+| G2 | artefact ownership | two modules write one destination | `overriding commands for target` |
+| G3 | module-name collision | our module reuses an AOSP/compat module name | `already defined by ...` + wrong artefact pulled in |
+| G4 | ELF deps + SONAME | unresolved symbol, undeclared `DT_NEEDED` | `Unresolved symbol` / `not specified in shared_libs` |
+| G5 | VINTF declaration parity | declared HAL missing from matrix, or declared twice | `INCOMPATIBLE` / duplicate FqInstance |
+
+Additionally run `scripts/check-sepolicy.sh`, `host_init_verifier` on every edited `.rc`, and `xmllint` on
+every edited XML (recipes in the sections above). All of it is host-side and takes under a minute.
 
 **Prerequisite for any `proprietary-files.txt` change: `extract-files.py` has already run to completion.**
-These three checks read the vendor tree and `installs-lineage_X6812B.mk`, so against an un-extracted manifest
-they validate the *previous* tree and pass misleadingly — a collision or SONAME problem you just introduced
-stays invisible until the build. The extract run needs the user's permission; ask for it in the same turn as
-the edit (hard rule 12).
+G2–G5 read the vendor tree and generated `Android.bp`/vendor `.mk`, so against an un-extracted manifest they
+validate the *previous* tree and pass misleadingly. Ask for permission in the same turn as the edit
+(hard rule 12).
 
-1. **Module-name collision** — soong resolves this last and it aborts the whole build.
-   `hardware/lineage/compat` and `prebuilts/vndk` both define modules a vendor tree is likely to redefine.
-   Match `name:` at low indentation; a bare `name:` regex also matches `filename:` keys and invents
-   duplicates. Run from this tree root:
+#### G1. Extract really ran
+
+```bash
+STOCK_DUMP=/home/rd/Projects/android/custom-rom/x6812b/Infinix-Hot-11S-NFC-X6812B-30
+ls -la --time-style=+%T vendor/infinix/X6812B/Android.bp device/infinix/X6812B/proprietary-files.txt
+```
+
+`Android.bp` must be newer than `proprietary-files.txt`. Then prove it is **idempotent** — a second run that
+changes nothing means the manifest and tree agree:
+
+```bash
+md5sum vendor/infinix/X6812B/Android.bp vendor/infinix/X6812B/X6812B-vendor.mk > /tmp/h
+cd device/infinix/X6812B && ./extract-files.py "$STOCK_DUMP" >/dev/null 2>&1; cd - >/dev/null
+md5sum -c /tmp/h && rm -f /tmp/h
+```
+
+Both snippets in this section run from `$ANDROID_ROOT`. A non-idempotent result means extract is still
+emitting something the manifest no longer lists — usually a line you expected to be excluded (see the `-`
+prefix trap under "Build and module traps").
+
+#### G2. Artefact ownership — exactly one source per destination
+
+This is the gate that catches `overriding commands for target`, the single most repeated failure class.
+`install_symlink`, `prebuilt_etc_xml` and **AOSP modules' `init_rc` / `vintf_fragments`** all count, not just
+`PRODUCT_COPY_FILES`. Both real incidents (vintf fragment, then the `.rc`) were missed because an earlier
+version of this check ignored module-attached artefacts.
+
+Run from `$ANDROID_ROOT` (`/home/rd/axion`), not from the device tree — the paths below are root-relative.
 
 ```bash
 python3 - <<'PY'
-import re
+import re, os, glob
+DEV='device/infinix/X6812B'; VND='vendor/infinix/X6812B'
+t={}
+def add(d,s): t.setdefault(d,[]).append(s)
+
+for mk in [f'{VND}/X6812B-vendor.mk', f'{DEV}/device.mk', f'{DEV}/lineage_X6812B.mk']:
+    if not os.path.exists(mk): continue
+    txt=open(mk,errors='replace').read().replace('\\\n',' ')
+    for src,dst in re.findall(r'([^\s:]+):\$\(TARGET_COPY_OUT_VENDOR\)(/[^\s]+)', txt):
+        add('vendor'+dst, f'COPY:{os.path.basename(src)}')
+
+bp=open(f'{VND}/Android.bp',errors='replace').read()
+for kind,pat in [('prebuilt_etc_xml',r'prebuilt_etc_xml \{(.*?)\n\}'),
+                 ('install_symlink',r'install_symlink \{(.*?)\n\}'),
+                 ('cc_prebuilt_binary',r'cc_prebuilt_binary \{(.*?)\n\}')]:
+    for m in re.finditer(pat, bp, re.S):
+        b=m.group(1); nm=re.search(r'name:\s*"([^"]+)"',b); nm=nm.group(1) if nm else '?'
+        if kind=='prebuilt_etc_xml':
+            sub=re.search(r'sub_dir:\s*"([^"]+)"',b); fn=re.search(r'src:\s*"([^"]+)"',b)
+            if sub and fn: add('vendor/'+sub.group(1)+'/'+os.path.basename(fn.group(1)), f'ETC_XML:{nm}')
+        elif kind=='install_symlink':
+            loc=re.search(r'installed_location:\s*"([^"]+)"',b)
+            if loc: add('vendor/'+loc.group(1).lstrip('/'), f'SYMLINK:{nm}')
+        else:
+            st=re.search(r'stem:\s*"([^"]+)"',b)
+            if st: add('vendor/bin/hw/'+st.group(1), f'PREBUILT:{nm}')
+
+PRODUCT=set()
+for mk in [f'{DEV}/device.mk', f'{VND}/X6812B-vendor.mk']:
+    txt=open(mk,errors='replace').read().replace('\\\n',' ')
+    for line in txt.splitlines():
+        line=line.strip()
+        if not line or line.startswith('#') or ':' in line or line.startswith('PRODUCT') or line.startswith('$'): continue
+        PRODUCT.add(line.rstrip('\\').strip())
+AOSP={'android.hardware.biometrics.fingerprint@2.1-service':'hardware/interfaces/biometrics/fingerprint/2.1/default'}
+for mod,d in AOSP.items():
+    if mod in PRODUCT:
+        for f in glob.glob(f'{d}/*.rc'): add('vendor/etc/init/'+os.path.basename(f), f'AOSP init_rc:{mod}')
+        for f in glob.glob(f'{d}/*.xml'): add('vendor/etc/vintf/manifest/'+os.path.basename(f), f'AOSP vintf_fragment:{mod}')
+
+bad=[(d,s) for d,s in t.items() if len(s)>1]
+print(f'conflicts: {len(bad)}')
+for d,s in bad:
+    print(' ',d); [print('    <-',x) for x in s]
+PY
+```
+
+Extend the `AOSP={}` map whenever you package another AOSP module whose source dir ships an `.rc` or vintf
+`.xml`. Zero conflicts is the only acceptable output.
+
+#### G3. Our module names must not collide with AOSP or compat
+
+A vendor tree that extracts a blob named like an AOSP module makes soong resolve the *AOSP* module, which
+drags in its `init_rc` and `vintf_fragments` (G2 then fires, several steps later). Fix at the source, not the
+symptom: rename with `;MODULE=<name>-mediatek` in `proprietary-files.txt`, which sets `name:` and leaves
+`stem:` as the firmware filename so the install path is unchanged.
+
+```bash
+python3 - <<'PY'
+import re, glob, os
 def bp_names(p):
     return set(re.findall(r'^\s{0,8}name:\s*"([^"]+)"', open(p, errors='replace').read(), re.M))
 compat = bp_names('../../../hardware/lineage/compat/Android.bp')
 for bp in ('Android.bp', 'libshims/Android.bp'):
-    print(bp, 'collisions:', sorted(bp_names(bp) & compat) or 'none')
+    if os.path.exists(bp):
+        print(bp, 'vs compat:', sorted(bp_names(bp) & compat) or 'none')
+PY
+grep -o 'name: "[^"]*"' vendor/infinix/X6812B/Android.bp | cut -d'"' -f2 | while read -r n; do
+  [ -e "../../../hardware/interfaces/$(echo "$n" | sed 's/@.*//')" ] && echo "CHECK vs AOSP: $n"
+done
+```
+
+A hit is real: `MODULE.TARGET.SHARED_LIBRARIES.<name> already defined`, or worse, a silent substitution and a
+duplicate install one gate later.
+
+#### G4. ELF dependencies and SONAME
+
+Replay the exact `check_elf_file` command from `out/error.log` (recipe above). For `Unresolved symbol`, diff
+the mangled names with `llvm-nm`; when the missing symbol is a HIDL runtime one
+(`gBnConstructorMap`, `IBase::interfaceChain`, …) the blob was built against an older Android and needs
+`.replace_needed('libhidlbase.so', 'libhidlbase-v32.so')` — **and** `libhidlbase-v32` in
+`PRODUCT_PACKAGES`, which `hardware/lineage/compat` defines but does not auto-install.
+
+```bash
+python3 - <<'PY'
+import re, os, glob, subprocess
+bp=open('vendor/infinix/X6812B/Android.bp',errors='replace').read()
+decl={}
+for m in re.finditer(r'cc_prebuilt_library_shared \{(.*?)\n\}',bp,re.S):
+    b=m.group(1); nm=re.search(r'name:\s*"([^"]+)"',b)
+    if nm and 'shared_libs' in b:
+        decl[nm.group(1)]=re.findall(r'"([^"]+)"', b.split('shared_libs:')[1].split(']')[0])
+for f in sorted(glob.glob('vendor/infinix/X6812B/proprietary/vendor/lib64/*.so')):
+    mod=os.path.basename(f)[:-3]
+    if mod not in decl: continue
+    out=subprocess.run(['readelf','-d',f],capture_output=True,text=True).stdout
+    need=re.findall(r'Shared library: \[([^\]]+)\]',out)
+    d=set(decl[mod])
+    missing=[x for x in need if x not in d and x[:-3] not in d]
+    if missing: print(f'{mod}: undeclared {missing}')
 PY
 ```
 
-   Any hit is a real error of the form
-   `MODULE.TARGET.SHARED_LIBRARIES.<name> already defined by hardware/lineage/compat`. Fix it by dropping
-   the extraction and letting the compat module win, unless the dump blob genuinely differs — check with
-   `readelf -d` on both first.
-2. **Replay the exact `check_elf_file` command** (see above). Catches a `DT_NEEDED` missing from
-   `shared_libs` and a compat module that under-declares its dependencies — the latter is upstream
-   breakage you cannot fix in this tree, so know before the build.
-3. **SONAME audit** (see above) for any newly extracted blob.
+Compare the **raw** `DT_NEEDED` (`libprotobuf-cpp-full-3.9.1.so`) and the `.so`-stripped form against the
+declared list. Never normalise version digits — `libfoo-3.9.1.so` and `libfoo.so` are different modules, and
+stripping at the wrong dot invents a false positive.
+
+A remaining hit is only genuine if no module of that name is reachable **by soname**, which is `stem:` when
+set, not `name:`. `libprotobuf-cpp-full-3.9.1-vendorcompat` declares `stem: "libprotobuf-cpp-full-3.9.1"` in
+`hardware/lineage/compat`, so its soname satisfies `libwvhidl` — the single flag this gate prints on a clean
+tree. Confirm any hit the same way before acting:
+
+```bash
+grep -B4 -A6 'name: "<declared-name>"' ../../../hardware/lineage/compat/Android.bp | grep -E 'name:|stem:'
+```
+
+#### G5. VINTF declaration parity — manifest **and** matrix, exactly once
+
+Three independent ways this fails, all seen in one subsystem:
+
+1. **Declared in `manifest.xml` but not in the compatibility matrix** → `checkvintf --check-compat` prints
+   `INCOMPATIBLE` and names the instance. Add it to
+   `configs/manifests/device_framework_compatibility_matrix.xml` as `optional="true"` (the X670 pattern).
+2. **Declared in `manifest.xml` *and* shipped by a module's `vintf_fragment`** → duplicate FqInstance. Never
+   declare an AOSP-built HAL by hand; its module already carries the fragment.
+3. **Declared but nothing registers it** → phantom (`DM,FC` in `lshal`), see "VINTF phantom declarations".
+
+**Do not hand-diff `manifest.xml` against `device_framework_compatibility_matrix.xml`.** That file is only
+*one input* to the merged matrix — `device/mediatek/vintf/`, the vendor matrix and the framework matrices all
+contribute, and 47 vendor HALs legitimately appear in the manifest without a device-matrix entry. A
+manifest-vs-device-matrix diff cries wolf; the real check is the build's own `checkvintf`.
+
+Re-stage the merged matrix first — a stale file in `out/` makes every check below lie — then run the two
+`checkvintf` calls from the build:
+
+```bash
+../../../out/host/linux-x86/bin/assemble_vintf \
+  -i ../../../out/target/product/X6812B/system/etc/vintf/compatibility_matrix.device.xml \
+  -i configs/manifests/device_framework_compatibility_matrix.xml \
+  -o /tmp/cm.merged \
+  && cp /tmp/cm.merged ../../../out/target/product/X6812B/system/etc/vintf/compatibility_matrix.device.xml
+
+# 1. no duplicate FqInstance between manifest.xml and installed fragments
+../../../out/host/linux-x86/bin/checkvintf --check-one \
+  --dirmap /vendor:../../../out/target/product/X6812B/vendor \
+  --dirmap /apex:../../../out/target/product/X6812B/obj/PACKAGING/check_vintf_all_intermediates/apex \
+  --property ro.boot.product.vendor.sku=
+
+# 2. the framework accepts every declared instance — must print COMPATIBLE
+../../../out/host/linux-x86/bin/checkvintf --check-compat \
+  --dirmap /system:../../../out/target/product/X6812B/system \
+  --dirmap /vendor:../../../out/target/product/X6812B/vendor \
+  --dirmap /odm:../../../out/target/product/X6812B/vendor/odm \
+  --dirmap /product:../../../out/target/product/X6812B/product \
+  --dirmap /system_ext:../../../out/target/product/X6812B/system_ext \
+  --dirmap /apex:../../../out/target/product/X6812B/obj/PACKAGING/check_vintf_all_intermediates/apex \
+  --property ro.product.first_api_level=30 \
+  --property ro.boot.product.hardware.sku= --property ro.boot.product.vendor.sku=
+```
+
+`--check-compat` names every offending instance with
+`The following instances are in the device manifest but not specified in framework compatibility matrix`.
+Prove a fix by reverting just the matrix edit and watching that line reappear — that is the only evidence
+that the entry you added is what repaired it.
+
+#### Migrating a whole subsystem from a sibling tree
+
+Copying a subsystem (fingerprint, audio, camera) from X670 or another tree hits G2–G5 in sequence, one build
+at a time, if taken literally. Instead:
+
+1. **Copy the sibling's *shape*, not its lines.** The reference tree already solved which side owns each
+   artefact: X670's fingerprint section ships four blob lines and no AOSP binary, no `.rc`, no fragment, no
+   manifest entry — because the AOSP module supplies all three. Ours must divide ownership the same way.
+2. **List every artefact the subsystem can produce** (binary, `.rc`, vintf fragment, manifest `<hal>`, matrix
+   entry, sepolicy type/context, overlay resources, init `mkdir`) and assign each exactly one owner.
+3. **Diff that assignment against the sibling tree before editing.** A subtree that ships N lines where the
+   reference ships N−3 is not more complete; it is three duplicate install rules waiting to happen.
+4. Then run G2–G5 once, on the finished subsystem, not per error.
 
 If a check names a module in `hardware/lineage/compat` or `prebuilts/vndk`, the fix is not in this tree.
-Decide up front whether to work around it at the device level (link a different, correctly-declared
-version) or accept it, and say so before the build instead of discovering it hours in.
+Decide up front whether to work around it at the device level (link a different, correctly-declared version)
+or accept it, and say so before the build instead of discovering it hours in.
 
 ## Build and module traps
 
+- **`overriding commands for target` is almost never about `PRODUCT_COPY_FILES`.** Check the AOSP module's
+  `init_rc` and `vintf_fragments` first: extracting a blob whose module name matches an AOSP module makes
+  soong build the AOSP module and install its `.rc` / vintf `.xml` to the same destination as our copy rule.
+  The fix is `;MODULE=<name>-mediatek` on the blob (keeps `stem:`, so the install path is unchanged), not
+  another copy-rule exclusion. `prebuilt_etc_xml` and `install_symlink` are the other two writers — G2
+  tracks all four.
+- **A `-` prefix in `proprietary-files.txt` does not mean "exclude".** `extract_utils/file.py:108` sets
+  `is_package = True` for a leading `-`, which *adds* the file to `PRODUCT_PACKAGES`. It re-emits the module
+  and package line on the next extract, silently undoing a hand-prune. To stop shipping a blob, delete the
+  line; `;MAKE_COPY_RULE_ONLY` ships it as a copy rule with no soong module when you need no module.
 - **A stale output file does not mean the current config builds.** A `build.lineage_X6812B.ninja` from an
   earlier success survives a later failure. Check timestamps.
 - **`stem:` renames only the installed file, not the module.** Two modules can write one destination.
