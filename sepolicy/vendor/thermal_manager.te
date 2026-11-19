@@ -1,0 +1,2 @@
+allow thermal_manager sysfs_therm:file r_file_perms;
+get_prop(thermal_manager, vendor_thermal_prop)
